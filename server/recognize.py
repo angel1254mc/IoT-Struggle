@@ -16,7 +16,7 @@ resize_and_rescale = tf.keras.Sequential([
 ])
 
 # Load your TensorFlow model
-model_path = "./models/garbageclassifier2.keras"
+model_path = "../model/garbageclassifier2.keras"
 print("Loading Model");
 model = tf.keras.models.load_model(model_path)
 print("Model Loaded!");
