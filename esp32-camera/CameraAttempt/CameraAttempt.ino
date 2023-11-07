@@ -39,6 +39,10 @@ Following. . .
 #define HREF_GPIO_NUM    23
 #define PCLK_GPIO_NUM    22
 
+// -[LED Pins]
+#define coundown_LED 0
+#define takingPhoto_LED 2
+
 //firebase objects
 FirebaseData fbdo;
 FirebaseAuth auth;
@@ -221,14 +225,39 @@ void setup() {
   else{
     Serial.printf("%s\n", configF.signer.signupError.message.c_str());
   }
+
+  //LED setup
+  pinMode(coundown_LED, OUTPUT);
+  pinMode(takingPhoto_LED, OUTPUT);
 }
 
 void loop() {
-  //takes care of reading http requests
-  //server.handleClient();
   if (takeNewPhoto) {
+
+    //reset LEDs
+    digitalWrite(coundown_LED, LOW);
+    digitalWrite(takingPhoto_LED, LOW);
+
+    //start countdown
+    digitalWrite(coundown_LED, HIGH);
+    delay(1000);
+    digitalWrite(coundown_LED, LOW);
+    delay(100);
+
+    digitalWrite(coundown_LED, HIGH);
+    delay(1000);
+    digitalWrite(coundown_LED, LOW);
+    delay(100);
+
+    digitalWrite(coundown_LED, HIGH);
+    delay(1000);
+    digitalWrite(coundown_LED, LOW);
+    delay(100);
+
+    digitalWrite(takingPhoto_LED, HIGH);
     capturePhotoSaveLittleFS();
     takeNewPhoto = false;
+    digitalWrite(takingPhoto_LED, LOW);
   }
   delay(1);
   if (Firebase.ready() && !taskCompleted){
