@@ -136,7 +136,7 @@ export default function RootLayout({ children }) {
             </head>
             <body className={inter.className}>
                 <main className="flex bg-gradient min-h-screen flex-col items-center justify-between">
-                  <div className="z-10 max-w-5xl w-full flex flex-col h-[100vh] text-sm lg:flex">
+                  <div className="z-10 max-w-5xl w-full flex flex-col min-h-[100vh] text-sm lg:flex">
                     {children}
                   </div>
                 </main>
