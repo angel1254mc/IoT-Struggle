@@ -25,7 +25,7 @@ uint8_t ESP32_SENSORS_ADDRESS[] = {0xB0, 0xA7, 0x32, 0x8C, 0x66, 0x08};
 // Communication data structures
 typedef struct struct_send_to_camera_message
 {
-  bool ready_to_take_picture; // lets camera ESP32 know its ready to take a picture
+  bool ready_to_take_picture; // lets Camera ESP32 know its ready to take a picture
 } struct_send_to_camera_message;
 
 typedef struct struct_receive_from_sensors_message
