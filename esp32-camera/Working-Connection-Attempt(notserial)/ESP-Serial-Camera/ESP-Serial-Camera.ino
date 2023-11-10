@@ -5,13 +5,14 @@
 #include <LittleFS.h>
 #include <FS.h>
 #include "Arduino.h"
-#include <esp_now.h>
 #include "esp_camera.h"
 #include <WiFi.h>
 #include <Firebase_ESP_Client.h>
 #include <addons/TokenHelper.h> //token generation
 
 #include "ImportantContents.h" //contains all the important bits
+
+#include <HardwareSerial.h>
 
 // -[ Wrover Pins ]
 #define PWDN_GPIO_NUM    -1
@@ -34,23 +35,11 @@
 #define FILE_PHOTO_PATH "/photo.jpg"
 #define BUCKET_PHOTO "/data/photo.jpg"
 
+#define indicatorLED    2
+
 FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig configF;
-
-uint8_t LEDControllerAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-uint8_t SensorControllerAddress[] = {0xFA, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-// Data structure of data to send to responder
-typedef struct Message
-{
-  bool ready_to_take_picture;
-} Message;
-
-Message incomingData;
-
-// Peers Data Structure
-esp_now_peer_info_t peerInfoLED;
-esp_now_peer_info_t peerInfoSensor;
 
 // ============= CAMERA CODE =============== // 
 
@@ -187,37 +176,13 @@ void initWiFi(){
 // ======================== NON-CAMERA CODE ============================= //
 
 //For recieving the data
-void OnDataRecv(const uint8_t * mac, const uint8_t *received, int len) {
-  memcpy(&incomingData, received, sizeof(incomingData));
 
-  // if LED Controller tells us an object was detected
-  if (memcmp(mac, LEDControllerAddress, 6) && incomingData.ready_to_take_picture) {
-    // Launch the camera and take a picture
-    capturePhotoSaveLittleFS();
-    Serial.println("after captureohoto happened");
-
-    if (Firebase.ready()){
-      Serial.println("Firebase is ready");
-      
-      if (Firebase.Storage.upload(&fbdo, STORAGE_BUCKET_ID, FILE_PHOTO_PATH, mem_storage_type_flash, BUCKET_PHOTO, "image/jpeg", fcsUploadCallback)){
-        Serial.printf("\nDownload URL: %s\n", fbdo.downloadURL().c_str());
-      }
-      else{
-        Serial.println(fbdo.errorReason());
-      }
-    }
-    else{
-      Serial.println("Firebase aint ready");
-    }
-  }
-}
+// ======================== SETUP AND LOOP ============================= //
 
 // General Setup
 void setup() {
   Serial.begin(115200);
   // Start WiFi
-  WiFi.mode(WIFI_AP_STA);
-  //WiFi.mode(WIFI_STA);
   initWiFi();
 
   // Now Initialize Camera and Firebase
@@ -240,32 +205,25 @@ void setup() {
   Firebase.begin(&configF, &auth);
   Firebase.reconnectWiFi(true);
 
-  // Start ESP Now
-  if (esp_now_init() != ESP_OK) {
-    Serial.println("Error initializing ESP-NOW");
-    return;
-  }
-
-  // Register Peers
-  // Peer 1 - LED Controller
-  memcpy(peerInfoLED.peer_addr, LEDControllerAddress, 6);
-  peerInfoLED.channel = WiFi.channel();  
-  peerInfoLED.encrypt = false;
-
-  if (esp_now_add_peer(&peerInfoLED) != ESP_OK){
-    Serial.println("Failed to add LED Controller Peer");
-    return;
-  }
-
-  // Register "data received" callback
-  esp_now_register_recv_cb(OnDataRecv);
-
-  // By now we've initialized LittleFS, Camera, Firebase, ESP-NOW, 
-  // All remaining logic should be handled in the callbacks
-
-  Serial.println("All ready!");
-
+  //indicator stuff
+  pinMode(indicatorLED, INPUT);
+  
 }
 
 void loop() {
+
+  if (digitalRead(indicatorLED) == HIGH){
+    Serial.println("Yes its being received!");
+    capturePhotoSaveLittleFS();
+    Serial.print("Uploading picture... ");
+
+    //MIME type should be valid to avoid the download problem.
+    //The file systems for flash and SD/SDMMC can be changed in FirebaseFS.h.
+    if (Firebase.Storage.upload(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */, FILE_PHOTO_PATH /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, BUCKET_PHOTO /* path of remote file stored in the bucket */, "image/jpeg" /* mime type */,fcsUploadCallback)){
+      Serial.printf("\nDownload URL: %s\n", fbdo.downloadURL().c_str());
+    }
+    else{
+      Serial.println(fbdo.errorReason());
+    }
+  }
 }
