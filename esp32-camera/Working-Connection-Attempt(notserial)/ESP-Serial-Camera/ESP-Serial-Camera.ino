@@ -41,6 +41,9 @@ FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig configF;
 
+bool signUpOk = false;
+bool takeNewPhoto = true;
+
 // ============= CAMERA CODE =============== // 
 
 void initLittleFS(){
@@ -193,13 +196,17 @@ void setup() {
   // Populate FirebaseConfig and Signin
   configF.api_key = API_KEY;
 
-  if(Firebase.signUp(&configF, &auth, "", "")){
-    Serial.println("SignUp ok!");
-    configF.token_status_callback = tokenStatusCallback;
-  }
-  else{
-    Serial.println("SignUp failed!");
-    Serial.printf("%s\n", configF.signer.signupError.message.c_str());
+  //making sure we're signed in
+  while (!signUpOk){
+    if(Firebase.signUp(&configF, &auth, "", "")){
+      Serial.println("SignUp ok!");
+      configF.token_status_callback = tokenStatusCallback;
+      signUpOk = true;
+    }
+    else{
+      Serial.println("SignUp failed!");
+      Serial.printf("%s\n", configF.signer.signupError.message.c_str());
+    }
   }
 
   Firebase.begin(&configF, &auth);
@@ -217,13 +224,21 @@ void loop() {
     capturePhotoSaveLittleFS();
     Serial.print("Uploading picture... ");
 
-    //MIME type should be valid to avoid the download problem.
-    //The file systems for flash and SD/SDMMC can be changed in FirebaseFS.h.
-    if (Firebase.Storage.upload(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */, FILE_PHOTO_PATH /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, BUCKET_PHOTO /* path of remote file stored in the bucket */, "image/jpeg" /* mime type */,fcsUploadCallback)){
-      Serial.printf("\nDownload URL: %s\n", fbdo.downloadURL().c_str());
+    while (takeNewPhoto){
+      if (Firebase.ready()){
+        takeNewPhoto = false;
+        if (Firebase.Storage.upload(&fbdo, STORAGE_BUCKET_ID, FILE_PHOTO_PATH, mem_storage_type_flash, BUCKET_PHOTO, "image/jpeg",fcsUploadCallback)){
+          Serial.printf("\nDownload URL: %s\n", fbdo.downloadURL().c_str());
+        }
+        else{
+          Serial.println(fbdo.errorReason());
+        }
+      }
+      else{
+        Serial.println("Error with Firebase! Retrying Photo Upload!");
+        Serial.println();
+      }
     }
-    else{
-      Serial.println(fbdo.errorReason());
-    }
+    takeNewPhoto = true;
   }
 }
