@@ -16,17 +16,11 @@ int trash_scan_distance = 0;
 int waste_distance = 0;
 int recycle_distance = 0;
 int sort_decision = 2;
+bool takeNewPhoto = true; //sort the trash before taking a new photo
 
 // Communication variables
-uint8_t ESP32_CAMERA_ADDRESS[] = {0xA0, 0xB7, 0x65, 0xFE, 0xDB, 0x5C};
 uint8_t ESP32_MOTOR_ADDRESS[] = {0xA0, 0xB7, 0x65, 0xFE, 0x6D, 0x4C};
 uint8_t ESP32_SENSORS_ADDRESS[] = {0xB0, 0xA7, 0x32, 0x8C, 0x66, 0x08};
-
-// Communication data structures
-typedef struct struct_send_to_camera_message
-{
-  bool ready_to_take_picture; // lets Camera ESP32 know its ready to take a picture
-} struct_send_to_camera_message;
 
 typedef struct struct_receive_from_sensors_message
 {
@@ -47,13 +41,11 @@ typedef struct struct_receive_from_motor_message
 } struct_receive_from_motor_message;
 
 // Structured data objects
-struct_send_to_camera_message sentCameraData;
 struct_receive_from_sensors_message receivedSensorsData;
 struct_send_to_motor_message sentMotorData;
 struct_receive_from_motor_message receivedMotorData;
 
 // Peer info
-esp_now_peer_info_t cameraPeerInfo;
 esp_now_peer_info_t sensorsPeerInfo;
 esp_now_peer_info_t motorPeerInfo;
 
@@ -117,11 +109,6 @@ void setup()
   esp_now_register_send_cb(OnDataSent); // Register the send callback
   esp_now_register_recv_cb(OnDataRecv); // Register the recv callback
 
-  // Register camera peer
-  memcpy(cameraPeerInfo.peer_addr, ESP32_CAMERA_ADDRESS, 6);
-  cameraPeerInfo.channel = 0;
-  cameraPeerInfo.encrypt = false;
-
   // Register sensors peer
   memcpy(sensorsPeerInfo.peer_addr, ESP32_SENSORS_ADDRESS, 6);
   sensorsPeerInfo.channel = 0;
@@ -133,10 +120,6 @@ void setup()
   motorPeerInfo.encrypt = false;
 
   // Add peers
-  if(esp_now_add_peer(&cameraPeerInfo) != ESP_OK)
-  {
-    Serial.println("Failed to add camera peer");
-  }
   if(esp_now_add_peer(&sensorsPeerInfo) != ESP_OK)
   {
     Serial.println("Failed to add sensors peer");
@@ -178,24 +161,12 @@ void loop()
   }
 
   // Check if trash is present 
-  if(trash_present)
+  if(trash_present && takeNewPhoto)
   {
-    // Send data to camera
-    sentCameraData.ready_to_take_picture = true; // Format structured broadcast data
-    esp_err_t cameraResult = esp_now_send(ESP32_CAMERA_ADDRESS, (uint8_t *) &sentCameraData, sizeof(sentCameraData));
-
     // Send data to motor
     sentMotorData.trash_detected = true;
     esp_err_t motorResult = esp_now_send(ESP32_MOTOR_ADDRESS, (uint8_t *) &sentMotorData, sizeof(sentMotorData));
 
-    if(cameraResult == ESP_OK)
-    {
-      Serial.println("Sending to camera confirmed");
-    }
-    else
-    {
-      Serial.println("Sending error");
-    }
     if(motorResult == ESP_OK)
     {
       Serial.println("Sending to motor confirmed");
@@ -205,21 +176,25 @@ void loop()
       Serial.println("Sending error");
     }
   
+    // Send data to camera/indicate for the user
+    Serial.println("Sending indicator to Camera to take the photo");
     digitalWrite(TRASH_SCAN_LED, HIGH); // Turn on White LED
     delay(5000); // Delay 5 seconds
     digitalWrite(TRASH_SCAN_LED, LOW); // Turn off White LED
+    takeNewPhoto = false
 
     // Todo: let camera know its ready to take a picture
 
     // Todo: let ML model decide where to sort trash
 
-    // If the trash is to be sorted in the waste bin, turn on the green LED
+    If the trash is to be sorted in the waste bin, turn on the green LED
     if (sort_decision == 0) 
     {
       digitalWrite(WASTE_LED, HIGH);
       // Todo: wait for conveyor belt to move trash into sort_decision
       delay(5000); // delay 5 seconds
       digitalWrite(WASTE_LED, LOW);
+      takeNewPhoto = true;
     }
 
     if(sort_decision == 1)
@@ -229,6 +204,7 @@ void loop()
       // Todo: wait for conveyor belt to move trash into sort_decision
       delay(5000); // delay 5 seconds
       digitalWrite(RECYCLE_LED, LOW);
+      takeNewPhoto = true;
     }
   }
 
