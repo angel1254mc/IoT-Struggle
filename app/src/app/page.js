@@ -14,7 +14,6 @@ export default function Home() {
 
     const [fade, setFade] = useState(false);
     const [formState, setFormState] = useState("signup");
-    const {toggleMenu} = useContext(MenuBarContext);
     const handleFade = () => {
         setFade((state) => !state);
         setTimeout(() => {
@@ -74,13 +73,7 @@ export default function Home() {
     return (
         <>
             <div className="max-w-5xl w-full h-auto flex justify-between px-4 py-4">
-                <div></div>
-                <button onClick={toggleMenu}>
-                <FontAwesomeIcon
-                    className="h-8 w-8  text-lightgreen"
-                    icon={faNavicon}
-                />
-                </button>
+                <div className="h-8"></div>
             </div>
             <div className="w-full max-w-5xl text-black flex flex-col flex-grow items-center py-2 px-8">
                 <h1 className="text-5xl font-black custom-text-gradient bg-horizontal-gradient">
