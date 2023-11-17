@@ -16,7 +16,7 @@ resize_and_rescale = tf.keras.Sequential([
 ])
 
 # Load your TensorFlow model
-model_path = "../model/garbageclassifier2.keras"
+model_path = "../model/garbageclassifier3.keras"
 print("Loading Model");
 model = tf.keras.models.load_model(model_path)
 print("Model Loaded!");
@@ -40,7 +40,7 @@ def predict_image(image_path):
     prediction = model.predict(image)
     
     # Decode the prediction 
-    classes = ["Aluminum", "Cardboard", "Glass", "Organic", "Plastic", "Paper", "Plastic", "Textiles", "Wood"];
+    classes = ["battery", "biological", "cardboard", "clothes", "metal", "nonrecyclableglass", "paper", "plastic", "recyclableglass", "shoes", "trash"];
     predicted_class = classes[np.argmax(prediction)]
 
     return predicted_class

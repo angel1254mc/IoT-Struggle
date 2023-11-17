@@ -2,17 +2,19 @@
 import { faBurger, faNavicon } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { auth } from "../../firebaseAdmin.js";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword} from "firebase/auth"
 import {useRouter} from 'next/navigation'; 
+import { MenuBarContext } from "./layout";
 
 export default function Home() {
     const { register, handleSubmit, formState: {errors} } = useForm();
 
     const [fade, setFade] = useState(false);
     const [formState, setFormState] = useState("signup");
+    const {toggleMenu} = useContext(MenuBarContext);
     const handleFade = () => {
         setFade((state) => !state);
         setTimeout(() => {
@@ -71,14 +73,16 @@ export default function Home() {
     
     return (
         <>
-            <div className="w-full h-auto flex justify-between px-4 py-4">
+            <div className="max-w-5xl w-full h-auto flex justify-between px-4 py-4">
                 <div></div>
+                <button onClick={toggleMenu}>
                 <FontAwesomeIcon
                     className="h-8 w-8  text-lightgreen"
                     icon={faNavicon}
                 />
+                </button>
             </div>
-            <div className="w-full text-black flex flex-col flex-grow items-center py-2 px-8">
+            <div className="w-full max-w-5xl text-black flex flex-col flex-grow items-center py-2 px-8">
                 <h1 className="text-5xl font-black custom-text-gradient bg-horizontal-gradient">
                     IoTrash
                 </h1>
