@@ -8,24 +8,6 @@ import { MenuBarContext } from '../layout'
 const page = () => {
 
     const {toggleMenu} = useContext(MenuBarContext);
-    //const ref = useRef(null);
-//
-//
-    //useEffect(() => {
-    //    if (ref == null) {
-    //        const firebaseConfig = {
-    //            apiKey: "AIzaSyCSNAmeTSQVZPP6JzkiJvTQrsd1MJafkTw",
-    //            authDomain: "fullstack-iot-web.firebaseapp.com",
-    //            databaseURL: "https://fullstack-iot-web-default-rtdb.firebaseio.com",
-    //            projectId: "fullstack-iot-web",
-    //            storageBucket: "fullstack-iot-web.appspot.com",
-    //            messagingSenderId: "280785478169",
-    //            appId: "1:280785478169:web:d8249dfc1f9d2eddd20088"
-    //        };
-    //        ref.current = initializeApp(firebaseConfig);
-    //    }
-    //}, []);
-
 
   return (
     <div className="max-w-5xl w-full min-h-[100vh]  flex flex-col gap-y-1 ">
