@@ -8,6 +8,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createContext, useRef, useState } from "react";
 
+import React, { useEffect } from 'react';
+import { auth } from "../../firebaseAdmin.js";
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const MenuBarContext = createContext();
@@ -18,10 +22,17 @@ export default function RootLayout({ children }) {
     const [menuOpen, setMenuOpen] = useState(false);
 
     const handleSignOut = () => {
-        // Firebase code to sign out here
-        console.log("Signing out");
-        // Firebase code to sign out ends
-
+        signOut(auth).then(() => {
+            signOut(auth).then(() => {
+                console.log("Sign Out Successful!");
+                //close the slide
+                menuRef.current.classList.remove("max-w-[100%]");
+                menuRef.current.classList.add("max-w-[0px]");
+                setMenuOpen(false);
+            })
+            .then(finished => router.push("/"))
+            .catch(error => console.log(error))
+        })
     }
 
     const pushAndToggle = (route) => {
@@ -167,7 +178,7 @@ export default function RootLayout({ children }) {
                     sizes="640x1136"
                 />
             </head>
-            <body className={inter.className}>
+            <body className={inter.className} id="sideMenu">
                 <main className="flex bg-gradient h-full relative max-h-screen overflow-hidden flex-col items-start">
                 <MenuBarContext.Provider value={{toggleMenu}}>
                   <div className="z-10 w-full flex flex-col items-center min-h-[100vh] max-h-[100vh] overflow-auto text-sm lg:flex">
