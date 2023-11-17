@@ -108,12 +108,14 @@
 
 import SignIn from './auth/SignIn'
 import SignUp from './auth/SignUp'
+import AuthDetails from './auth/authDetails'
 
 function Home() {
     return(
         <div className="Home">
             <SignIn />
             <SignUp />
+            <AuthDetails />
         </div>
     );
 }
