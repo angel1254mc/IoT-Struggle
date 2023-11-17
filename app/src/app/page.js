@@ -5,7 +5,8 @@ import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { auth } from "../../firebaseAdmin.js";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth"
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword} from "firebase/auth"
+import {useRouter} from 'next/navigation'; 
 
 export default function Home() {
     const { register, handleSubmit, formState: {errors} } = useForm();
@@ -22,6 +23,7 @@ export default function Home() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const router = useRouter()
 
     const signInOut = async () => {
         
@@ -31,8 +33,18 @@ export default function Home() {
             signInWithEmailAndPassword(auth,email,password)
             .then((userCredentials) => {
                 console.log(userCredentials);
+                router.push("/dashboard");
             }).catch((error) =>{
-                console.log(error);
+                switch(error.code){
+                    case 'auth/user-not-found':
+                        console.log("ERROR: Specifically, user doesn't exist");
+                        break;
+                    case 'auth/invalid-login-credentials':
+                        console.log("ERROR: Specifically, password is wrong");
+                    break;
+                    default:
+                        console.log(error);
+                }
             });
         }
         else if (formState == "signup"){
@@ -41,8 +53,18 @@ export default function Home() {
             createUserWithEmailAndPassword(auth,email,password)
             .then((userCredentials) => {
                 console.log(userCredentials);
+                router.push("/dashboard");
             }).catch((error) =>{
-                console.log(error);
+                switch(error.code){
+                    case 'auth/email-already-in-use':
+                        console.log("ERROR: Specifically, user already exists");
+                        break;
+                    case 'auth/weak-password':
+                        console.log("ERROR: Specifically, Password sucks");
+                        break;
+                    default:
+                        console.log(error);
+                }
             });
         }
     };
