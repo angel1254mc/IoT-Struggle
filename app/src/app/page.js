@@ -24,7 +24,8 @@ export default function Home() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const router = useRouter()
+    const router = useRouter();
+    let errMessage = "aa";
 
     const signInOut = async () => {
         
@@ -69,6 +70,31 @@ export default function Home() {
             });
         }
     };
+
+    function hideErr() {
+        if (errMessage == ""){
+            console.log("hide the error");
+            document.getElementById('ErrorPopup').style.display = "none";
+        }
+        else{
+            console.log("show the error");
+            document.getElementById('ErrorPopup').style.display = 'block';
+        }
+    }
+
+    function xOut(){
+        console.log("Xing out");
+        errMessage = "";
+        document.getElementById('ErrorPopup').style.display = "none";
+    }
+    function outsideOut(event){
+        console.log("Another Way out");
+        errMessage = "";
+        if (event.target == document.getElementById('ErrorPopup')){
+            errMessage = "";
+            document.getElementById('ErrorPopup').style.display = "none";
+        }
+    }
     
     return (
         <>
@@ -147,26 +173,17 @@ export default function Home() {
                     </button>
                 </div>
             </div>
+            <div className='ErrorPopup' ide='ErrorPopup'>
+                <span class="close">&times;</span>
+                <p>Some text in the Modal..</p>
+            </div>
+            <script>
+                var span =  document.getElementByClassName('close')[0];
+
+                hideErr();
+                window.onClick = outsideOut(event);
+                span.onClick = xOut();
+            </script>
         </>
     );
 }
-
-/*
-~This is test auth code
-
-import SignIn from './auth/SignIn'
-import SignUp from './auth/SignUp'
-import AuthDetails from './auth/authDetails'
-
-function Home() {
-    return(
-        <div className="Home">
-            <SignIn />
-            <SignUp />
-            <AuthDetails />
-        </div>
-    );
-}
-
-export default Home;
-*/
