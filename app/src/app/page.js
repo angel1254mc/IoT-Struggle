@@ -8,6 +8,7 @@ import { auth } from "../../firebaseAdmin.js";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword} from "firebase/auth"
 import {useRouter} from 'next/navigation'; 
 import { MenuBarContext } from "./layout";
+import { Dialog } from '@headlessui/react'
 
 export default function Home() {
     const { register, handleSubmit, formState: {errors} } = useForm();
@@ -25,7 +26,9 @@ export default function Home() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const router = useRouter();
-    let errMessage = "aa";
+
+    let [hasError, setHasError] = useState(false);
+    let [errorMessage, setErrorMessage] = useState("");
 
     const signInOut = async () => {
         
@@ -36,17 +39,26 @@ export default function Home() {
             .then((userCredentials) => {
                 console.log(userCredentials);
                 router.push("/dashboard");
+                setErrorMessage("");
             }).catch((error) =>{
                 switch(error.code){
                     case 'auth/user-not-found':
                         console.log("ERROR: Specifically, user doesn't exist");
+                        setErrorMessage("Specifically, user doesn't exist");
                         break;
                     case 'auth/invalid-login-credentials':
                         console.log("ERROR: Specifically, password is wrong");
-                    break;
+                        setErrorMessage("Specifically, password is wrong");
+                        break;
+                    case 'auth/too-many-requests':
+                        console.log("ERROR: Specifically, too many login attempts. Try again later");
+                        setErrorMessage("Specifically, too many login attempts. Try again later");
+                        break;
                     default:
                         console.log(error);
+                        setErrorMessage("Not sure what happened but it doesn't look good");
                 }
+                setHasError(true);
             });
         }
         else if (formState == "signup"){
@@ -56,45 +68,25 @@ export default function Home() {
             .then((userCredentials) => {
                 console.log(userCredentials);
                 router.push("/dashboard");
+                setErrorMessage("");
             }).catch((error) =>{
                 switch(error.code){
                     case 'auth/email-already-in-use':
                         console.log("ERROR: Specifically, user already exists");
+                        setErrorMessage("Specifically, user already exists");
                         break;
                     case 'auth/weak-password':
                         console.log("ERROR: Specifically, Password sucks");
+                        setErrorMessage("Specifically, password sucks");
                         break;
                     default:
                         console.log(error);
+                        setErrorMessage("Not sure what happened but it doesn't look good");
                 }
+                setHasError(true);
             });
         }
     };
-
-    function hideErr() {
-        if (errMessage == ""){
-            console.log("hide the error");
-            document.getElementById('ErrorPopup').style.display = "none";
-        }
-        else{
-            console.log("show the error");
-            document.getElementById('ErrorPopup').style.display = 'block';
-        }
-    }
-
-    function xOut(){
-        console.log("Xing out");
-        errMessage = "";
-        document.getElementById('ErrorPopup').style.display = "none";
-    }
-    function outsideOut(event){
-        console.log("Another Way out");
-        errMessage = "";
-        if (event.target == document.getElementById('ErrorPopup')){
-            errMessage = "";
-            document.getElementById('ErrorPopup').style.display = "none";
-        }
-    }
     
     return (
         <>
@@ -173,17 +165,41 @@ export default function Home() {
                     </button>
                 </div>
             </div>
-            <div className='ErrorPopup' ide='ErrorPopup'>
-                <span class="close">&times;</span>
-                <p>Some text in the Modal..</p>
-            </div>
-            <script>
-                var span =  document.getElementByClassName('close')[0];
+            <div className='ErrorPopup' id='ErrorPopup'>
 
-                hideErr();
-                window.onClick = outsideOut(event);
-                span.onClick = xOut();
-            </script>
+                <Dialog 
+                    open={hasError} 
+                    onClose={() => setHasError(false)}
+                    className="relative z-50"
+                >
+                    <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+                    <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
+                        <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                            
+                            <div className="bg-pink-700 border-pink-700">
+                                <Dialog.Title
+                                    as="h3"
+                                    className="text-lg font-medium font-bold text-center text-white"
+                                >Error</Dialog.Title>
+                            </div>
+                            <Dialog.Description className="text-pink-700 mt-4 font-medium text-center">
+                                {errorMessage}
+                            </Dialog.Description>
+                                <p className="text-sm text-emerald-500 text-center">
+                                    Please fix the error and try again.
+                                </p>
+                            <div className="mt-4 text-center">
+                                <button className="bg-green-300 border-green-300 rounded-lg border-8" 
+                                onClick={() => {
+                                    setHasError(false);
+                                    setErrorMessage("");
+                                }}>Alright!</button>
+                            </div>
+                        </Dialog.Panel>
+                    </div>
+                </Dialog>
+
+            </div>
         </>
     );
 }

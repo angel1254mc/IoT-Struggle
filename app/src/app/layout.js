@@ -188,9 +188,9 @@ export default function RootLayout({ children }) {
                       <div onClick={toggleMenu} className="w-full flex justify-end py-6 px-6">
                         <FontAwesomeIcon className="w-10 h-10" icon={faClose}/>
                       </div>
-                      <button onClick={() => pushAndToggle("/")} className="flex nav-item text-3xl font-bold px-4 border-green-500 py-4 border-t-[2px]">
+                      {/* <button onClick={() => pushAndToggle("/")} className="flex nav-item text-3xl font-bold px-4 border-green-500 py-4 border-t-[2px]">
                           Home
-                      </button>
+                      </button> */}
                       <button onClick={() => pushAndToggle("/dashboard")} className="flex nav-item text-3xl font-bold px-4 border-green-500 py-4 border-t-[2px]">
                           Dashboard
                       </button>
