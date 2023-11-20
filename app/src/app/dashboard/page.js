@@ -2,16 +2,25 @@
 import { faNavicon } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Image from 'next/image'
-import React from 'react'
+import React, { useContext } from 'react'
+import { MenuBarContext } from '../layout'
 
 const page = () => {
+
+    const {toggleMenu} = useContext(MenuBarContext);
+
+    //firebase, set the activeUserID to current
+    
+
   return (
-    <div className="w-full min-h-[100vh] flex flex-col gap-y-1">
+    <div className="max-w-5xl w-full min-h-[100vh]  flex flex-col gap-y-1 ">
         <div className="flex w-full px-4 py-4 justify-end">
+            <button onClick={toggleMenu}>
             <FontAwesomeIcon
                     className="h-8 w-8 text-lightgreen"
                     icon={faNavicon}
                 />
+            </button>
         </div>
         <div className="w-full px-4 h-auto text-3xl font-semibold text-black">
             <h1>Overview</h1>
@@ -73,6 +82,12 @@ const page = () => {
                 <p className="text-left pl-4 w-1/3 flex items-center gap-x-3"><Image className="h-6 w-6 rounded-full" src="/picture.jpg" height={100} width={100}/>Angel</p>
                 <p className="text-left pl-2 w-1/4">233</p>
             </div>
+        </div>
+        <div className="flex mb-4 flex-col justify-center items-center mt-1 py-2 px-2 mx-2 border-gray-300 border-[1px] rounded-md shadow-md bg-white">
+            <h1 className="text-xl"></h1>
+            <Image src="" className="w-96 h-96">
+                
+            </Image>
         </div>
         </div>
     </div>

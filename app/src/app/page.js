@@ -2,15 +2,17 @@
 import { faBurger, faNavicon } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
-import { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
+import { auth } from "../../firebaseAdmin.js";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword} from "firebase/auth"
+import {useRouter} from 'next/navigation'; 
+import { MenuBarContext } from "./layout";
+import { Dialog } from '@headlessui/react'
 
 export default function Home() {
     const { register, handleSubmit, formState: {errors} } = useForm();
 
-    const onSubmit = async () => {
-      console.log("Hello");
-    };
     const [fade, setFade] = useState(false);
     const [formState, setFormState] = useState("signup");
     const handleFade = () => {
@@ -21,17 +23,78 @@ export default function Home() {
         }, 500);
     };
 
-    console.log(errors);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const router = useRouter();
+
+    let [hasError, setHasError] = useState(false);
+    let [errorMessage, setErrorMessage] = useState("");
+
+    const signInOut = async () => {
+        
+        if (formState == "signin"){
+            console.log("We're Logging in");
+            signInWithEmailAndPassword(auth,email,password)
+            .then((userCredentials) => {
+                console.log(userCredentials.user.uid);
+                
+                router.push("/dashboard");
+                setErrorMessage("");
+            }).catch((error) =>{
+                switch(error.code){
+                    case 'auth/user-not-found':
+                        console.log("ERROR: Specifically, user doesn't exist");
+                        setErrorMessage("Specifically, user doesn't exist");
+                        break;
+                    case 'auth/invalid-login-credentials':
+                        console.log("ERROR: Specifically, password is wrong");
+                        setErrorMessage("Specifically, password is wrong");
+                        break;
+                    case 'auth/too-many-requests':
+                        console.log("ERROR: Specifically, too many login attempts. Try again later");
+                        setErrorMessage("Specifically, too many login attempts. Try again later");
+                        break;
+                    default:
+                        console.log(error);
+                        setErrorMessage("Not sure what happened but it doesn't look good");
+                }
+                setHasError(true);
+            });
+        }
+        else if (formState == "signup"){
+            console.log("Signing up now");
+
+            createUserWithEmailAndPassword(auth,email,password)
+            .then((userCredentials) => {
+                console.log(userCredentials.user.uid);
+
+                router.push("/registermac");
+                setErrorMessage("");
+            }).catch((error) =>{
+                switch(error.code){
+                    case 'auth/email-already-in-use':
+                        console.log("ERROR: Specifically, user already exists");
+                        setErrorMessage("Specifically, user already exists");
+                        break;
+                    case 'auth/weak-password':
+                        console.log("ERROR: Specifically, Password sucks");
+                        setErrorMessage("Specifically, password sucks");
+                        break;
+                    default:
+                        console.log(error);
+                        setErrorMessage("Not sure what happened but it doesn't look good");
+                }
+                setHasError(true);
+            });
+        }
+    };
+    
     return (
         <>
-            <div className="w-full h-auto flex justify-between px-4 py-4">
-                <div></div>
-                <FontAwesomeIcon
-                    className="h-8 w-8  text-lightgreen"
-                    icon={faNavicon}
-                />
+            <div className="max-w-5xl w-full h-auto flex justify-between px-4 py-4">
+                <div className="h-8"></div>
             </div>
-            <div className="w-full text-black flex flex-col flex-grow items-center py-2 px-8">
+            <div className="w-full max-w-5xl text-black flex flex-col flex-grow items-center py-2 px-8">
                 <h1 className="text-5xl font-black custom-text-gradient bg-horizontal-gradient">
                     IoTrash
                 </h1>
@@ -43,7 +106,7 @@ export default function Home() {
                 ></Image>
 
                 <form
-                    onSubmit={handleSubmit(onSubmit)}
+                    onSubmit={handleSubmit(signInOut)}
                     className={`${
                         fade ? "fade-out" : "fade-in"
                     } w-full text-base rounded-sm bg-white border-[1px] border-[#C3C3C3] mt-4 shadow-xl p-4 flex flex-col`}
@@ -57,6 +120,8 @@ export default function Home() {
                         className="px-2 py-1 mt-1 border-[1px] border-gray-300"
                         type="email"
                         id="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                     />
                     <label for="password">Password</label>
                     {errors?.password?.message ? <p className="text-red-400 text-xs">{errors?.password?.message}</p> : <></>}
@@ -65,6 +130,8 @@ export default function Home() {
                         className="px-2 py-1 mt-1 border-[1px] border-gray-300"
                         type="password"
                         id="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                     />
                     <button
                         type="submit"
@@ -98,6 +165,41 @@ export default function Home() {
                         {formState == "signin" ? "Sign Up" : "Log In"}
                     </button>
                 </div>
+            </div>
+            <div className='ErrorPopup' id='ErrorPopup'>
+
+                <Dialog 
+                    open={hasError} 
+                    onClose={() => setHasError(false)}
+                    className="relative z-50"
+                >
+                    <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+                    <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
+                        <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                            
+                            <div className="bg-pink-700 border-pink-700">
+                                <Dialog.Title
+                                    as="h3"
+                                    className="text-lg font-medium font-bold text-center text-white"
+                                >Error</Dialog.Title>
+                            </div>
+                            <Dialog.Description className="text-pink-700 mt-4 font-medium text-center">
+                                {errorMessage}
+                            </Dialog.Description>
+                                <p className="text-sm text-emerald-500 text-center">
+                                    Please fix the error and try again.
+                                </p>
+                            <div className="mt-4 text-center">
+                                <button className="bg-green-300 border-green-300 rounded-lg border-8" 
+                                onClick={() => {
+                                    setHasError(false);
+                                    setErrorMessage("");
+                                }}>Alright!</button>
+                            </div>
+                        </Dialog.Panel>
+                    </div>
+                </Dialog>
+
             </div>
         </>
     );

@@ -12,14 +12,18 @@
     "@fortawesome/fontawesome-svg-core": "^6.4.2",
     "@fortawesome/free-solid-svg-icons": "^6.4.2",
     "@fortawesome/react-fontawesome": "^0.2.0",
+    "@headlessui/react": "^1.7.17",
     "@tensorflow/tfjs": "^4.12.0",
     "@tensorflow/tfjs-node": "3.1.0",
     "canvas": "^2.11.2",
+    "firebase": "^10.6.0",
     "next": "13.5.6",
     "node-fetch": "^3.3.2",
     "react": "^18",
     "react-dom": "^18",
     "react-hook-form": "^7.47.0",
+    "react-router-dom": "^6.19.0",
+    "state-pool": "^0.10.0",
     "tfjs": "^0.6.0"
   },
   "devDependencies": {
