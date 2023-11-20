@@ -193,29 +193,7 @@ void setup() {
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
   initCamera();
 
-/*
   // Populate FirebaseConfig and Signin
-  configF.api_key = API_KEY;
-  auth.user.email = USER_EMAIL;
-  auth.user.password = USER_PASSWORD;
-  configF.token_status_callback = tokenStatusCallback;
-
-  Firebase.begin(&configF, &auth);
-  Firebase.reconnectWiFi(true);
-
-  // Getting the user UID might take a few seconds
-  Serial.println("Getting User UID");
-  while ((auth.token.uid) == "") {
-    Serial.print('.');
-    delay(1000);
-  }
-  // Print user UID
-  String uid = auth.token.uid.c_str();
-  Serial.print("User UID: ");
-  Serial.print(uid);
-  */
-
-    // Populate FirebaseConfig and Signin
   configF.api_key = API_KEY;
 
   //making sure we're signed in
@@ -241,6 +219,9 @@ void setup() {
     String documentPath = "Mac-To-Users/" + WiFi.macAddress();
     String fieldPath = "ActiveUserID";
 
+    FirebaseJson jsonPayload;
+    FirebaseJsonData jsonData;
+
     //get the document associated with our mac address
     if (Firebase.Firestore.getDocument(&fbdo, "iotstruggle", "", documentPath.c_str(), fieldPath.c_str())){
       Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
@@ -250,7 +231,7 @@ void setup() {
       jsonPayload.get(jsonData, "fields/ActiveUserID/stringValue", true);
       Serial.println(jsonData.stringValue);
       // User ID will determine bucket name
-      uid = jsonData.stringValue;
+      String uid = jsonData.stringValue;
       BUCKET_PHOTO = uid + BUCKET_PHOTO;
       restartAttempt = false;
     }
