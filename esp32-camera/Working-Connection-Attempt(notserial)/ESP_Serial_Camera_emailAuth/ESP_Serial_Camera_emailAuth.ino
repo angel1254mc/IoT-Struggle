@@ -9,6 +9,7 @@
 #include <WiFi.h>
 #include <Firebase_ESP_Client.h>
 #include <addons/TokenHelper.h> //token generation
+#include <FirebaseJson.h>
 
 #include "ImportantContents.h" //contains all the important bits
 
@@ -193,6 +194,7 @@ void setup() {
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
   initCamera();
 
+/*
   // Populate FirebaseConfig and Signin
   configF.api_key = API_KEY;
   auth.user.email = USER_EMAIL;
@@ -212,6 +214,35 @@ void setup() {
   String uid = auth.token.uid.c_str();
   Serial.print("User UID: ");
   Serial.print(uid);
+  */
+
+    // Populate FirebaseConfig and Signin
+  configF.api_key = API_KEY;
+
+  //making sure we're signed in
+  while (!signUpOk){
+    if(Firebase.signUp(&configF, &auth, "", "")){
+      Serial.println("SignUp ok!");
+      configF.token_status_callback = tokenStatusCallback;
+      signUpOk = true;
+    }
+    else{
+      Serial.println("SignUp failed!");
+      Serial.printf("%s\n", configF.signer.signupError.message.c_str());
+    }
+  }
+
+  Firebase.begin(&configF, &auth);
+  Firebase.reconnectWiFi(true);
+
+  //then, once all the connections are done...
+  if (Firebase.ready()){
+    String documentPath = WiFi.macAddress();
+    FirebaseJson content;
+    //get the document associated with our mac address
+    Firebase.Firestore.getDocument(&fbdo, iotstruggle, WiFi.macAddress()) 
+  }
+  
 
   // User ID will determine bucket name
   BUCKET_PHOTO = uid + BUCKET_PHOTO;

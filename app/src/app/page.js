@@ -67,7 +67,7 @@ export default function Home() {
             createUserWithEmailAndPassword(auth,email,password)
             .then((userCredentials) => {
                 console.log(userCredentials);
-                router.push("/dashboard");
+                router.push("/registermac");
                 setErrorMessage("");
             }).catch((error) =>{
                 switch(error.code){
