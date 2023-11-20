@@ -237,15 +237,22 @@ void setup() {
 
   //then, once all the connections are done...
   if (Firebase.ready()){
-    String documentPath = WiFi.macAddress();
-    FirebaseJson content;
+    String documentPath = "Mac-To-Users/" + WiFi.macAddress();
+    String fieldPath = "ActiveUserID";
+
     //get the document associated with our mac address
-    Firebase.Firestore.getDocument(&fbdo, iotstruggle, WiFi.macAddress()) 
+    if (Firebase.Firestore.getDocument(&fbdo, "iotstruggle", "", documentPath.c_str(), fieldPath.c_str())){
+      Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
+      jsonPayload.setJsonData(fbdo.payload().c_str());
+
+      // Get the data from FirebaseJson object 
+      jsonPayload.get(jsonData, "fields/ActiveUserID/stringValue", true);
+      Serial.println(jsonData.stringValue);
+    }
+    // User ID will determine bucket name
+    BUCKET_PHOTO = uid + BUCKET_PHOTO;
   }
   
-
-  // User ID will determine bucket name
-  BUCKET_PHOTO = uid + BUCKET_PHOTO;
 
   //indicator stuff
   pinMode(indicatorLED, INPUT);

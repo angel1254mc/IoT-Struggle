@@ -9,6 +9,9 @@ const page = () => {
 
     const {toggleMenu} = useContext(MenuBarContext);
 
+    //firebase, set the activeUserID to current
+    
+
   return (
     <div className="max-w-5xl w-full min-h-[100vh]  flex flex-col gap-y-1 ">
         <div className="flex w-full px-4 py-4 justify-end">

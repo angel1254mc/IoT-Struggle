@@ -2,7 +2,6 @@
 #include "Arduino.h"
 #include <WiFi.h>
 #include <addons/TokenHelper.h> //token generation
-// #include <FirebaseJson.h>
 
 #define AP_SSID "SpectrumSetup-0F"
 #define AP_PASS "botanykey125"
@@ -60,15 +59,24 @@ void setup() {
 
   //then, once all the connections are done...
   if (Firebase.ready()){
-    String documentPath = WiFi.macAddress();
-    String fieldPath = "ActiveUserId";
+    String documentPath = "Mac-To-Users/" + WiFi.macAddress();
+    String fieldPath = "ActiveUserID";
+    FirebaseJson jsonPayload;
+    FirebaseJsonData jsonData;
     //FirebaseJson content;
     //get the document associated with our mac address
     //Firebase.Firestore.getDocument(&fbdo, iotstruggle, WiFi.macAddress()) 
-    if (Firebase.Firestore.getDocument(&fbdo, "iotstruggle", "", documentPath.c_str(), fieldPath.c_str()))
-        Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
-    else
-        Serial.println(fbdo.errorReason());
+    if (Firebase.Firestore.getDocument(&fbdo, "iotstruggle", "", documentPath.c_str(), fieldPath.c_str())){
+      Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
+        jsonPayload.setJsonData(fbdo.payload().c_str());
+
+        // Get the data from FirebaseJson object 
+        jsonPayload.get(jsonData, "fields/ActiveUserID/stringValue", true);
+        Serial.println(jsonData.stringValue);
+    }
+    else{
+      Serial.println(fbdo.errorReason());
+    }
   }
 }
 

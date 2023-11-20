@@ -22,6 +22,8 @@
     "react": "^18",
     "react-dom": "^18",
     "react-hook-form": "^7.47.0",
+    "react-router-dom": "^6.19.0",
+    "state-pool": "^0.10.0",
     "tfjs": "^0.6.0"
   },
   "devDependencies": {

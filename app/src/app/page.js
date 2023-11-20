@@ -2,7 +2,7 @@
 import { faBurger, faNavicon } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
-import { useContext, useState } from "react";
+import React, { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { auth } from "../../firebaseAdmin.js";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword} from "firebase/auth"
@@ -34,10 +34,10 @@ export default function Home() {
         
         if (formState == "signin"){
             console.log("We're Logging in");
-            
             signInWithEmailAndPassword(auth,email,password)
             .then((userCredentials) => {
-                console.log(userCredentials);
+                console.log(userCredentials.user.uid);
+                
                 router.push("/dashboard");
                 setErrorMessage("");
             }).catch((error) =>{
@@ -66,7 +66,8 @@ export default function Home() {
 
             createUserWithEmailAndPassword(auth,email,password)
             .then((userCredentials) => {
-                console.log(userCredentials);
+                console.log(userCredentials.user.uid);
+
                 router.push("/registermac");
                 setErrorMessage("");
             }).catch((error) =>{
