@@ -9,7 +9,6 @@
 #include <WiFi.h>
 #include <Firebase_ESP_Client.h>
 #include <addons/TokenHelper.h> //token generation
-#include <FirebaseJson.h>
 
 #include "ImportantContents.h" //contains all the important bits
 
@@ -235,8 +234,10 @@ void setup() {
   Firebase.begin(&configF, &auth);
   Firebase.reconnectWiFi(true);
 
+  bool restartAttempt = false;
+
   //then, once all the connections are done...
-  if (Firebase.ready()){
+  if (Firebase.ready() && !restartAttempt){
     String documentPath = "Mac-To-Users/" + WiFi.macAddress();
     String fieldPath = "ActiveUserID";
 
@@ -248,9 +249,18 @@ void setup() {
       // Get the data from FirebaseJson object 
       jsonPayload.get(jsonData, "fields/ActiveUserID/stringValue", true);
       Serial.println(jsonData.stringValue);
+      // User ID will determine bucket name
+      uid = jsonData.stringValue;
+      BUCKET_PHOTO = uid + BUCKET_PHOTO;
+      restartAttempt = false;
     }
-    // User ID will determine bucket name
-    BUCKET_PHOTO = uid + BUCKET_PHOTO;
+    else{
+      restartAttempt = true;
+    }
+  }
+  else{
+    Serial.println(fbdo.errorReason());
+    restartAttempt = true;
   }
   
 
