@@ -9,8 +9,9 @@ import { useRouter } from "next/navigation";
 import { createContext, useRef, useState } from "react";
 
 import React, { useEffect } from 'react';
-import { auth } from "../../firebaseAdmin.js";
+import { auth, db } from "../../firebaseAdmin.js";
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { FirebaseProvider } from "@/context/FirebaseContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -181,6 +182,7 @@ export default function RootLayout({ children }) {
             <body className={inter.className} id="sideMenu">
                 <main className="flex bg-gradient h-full relative max-h-screen overflow-hidden flex-col items-start">
                 <MenuBarContext.Provider value={{toggleMenu}}>
+                    <FirebaseProvider>
                   <div className="z-10 w-full flex flex-col items-center min-h-[100vh] max-h-[100vh] overflow-auto text-sm lg:flex">
                     {children}
                   </div>
@@ -198,6 +200,7 @@ export default function RootLayout({ children }) {
                           Sign Out
                       </button>
                   </div>
+                  </FirebaseProvider>
                 </MenuBarContext.Provider>
                 </main>
             </body>
