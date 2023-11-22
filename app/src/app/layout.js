@@ -1,6 +1,7 @@
 "use client"
 import { Inter } from "next/font/google";
 import "./globals.css";
+import '@mantine/core/styles.css';
 import { initializeApp } from 'firebase/app';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClose, faX } from "@fortawesome/free-solid-svg-icons";
@@ -12,6 +13,7 @@ import React, { useEffect } from 'react';
 import { auth, db } from "../../firebaseAdmin.js";
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { FirebaseProvider } from "@/context/FirebaseContext";
+import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -178,9 +180,11 @@ export default function RootLayout({ children }) {
                     href="/images/apple_splash_640.png"
                     sizes="640x1136"
                 />
+                <ColorSchemeScript/>
             </head>
+            <MantineProvider forceColorScheme="light">
             <body className={inter.className} id="sideMenu">
-                <main className="flex bg-gradient h-full relative max-h-screen overflow-hidden flex-col items-start">
+                <main className="flex bg-gradient h-full min-h-[100vh] relative max-h-screen overflow-hidden flex-col items-start">
                 <MenuBarContext.Provider value={{toggleMenu}}>
                     <FirebaseProvider>
                   <div className="z-10 w-full flex flex-col items-center min-h-[100vh] max-h-[100vh] overflow-auto text-sm lg:flex">
@@ -204,6 +208,7 @@ export default function RootLayout({ children }) {
                 </MenuBarContext.Provider>
                 </main>
             </body>
+            </MantineProvider>
         </html>
     );
 }

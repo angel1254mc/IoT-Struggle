@@ -4,15 +4,16 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import React, { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
-import { auth } from "../../firebaseAdmin.js";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword} from "firebase/auth"
 import {useRouter} from 'next/navigation'; 
 import { MenuBarContext } from "./layout";
 import { Dialog } from '@headlessui/react'
+import { FirebaseContext } from "@/context/FirebaseContext.js";
+import { doc, getDoc, setDoc } from "@firebase/firestore";
+import { db, auth } from "../../firebaseAdmin";
 
 export default function Home() {
     const { register, handleSubmit, formState: {errors} } = useForm();
-
     const [fade, setFade] = useState(false);
     const [formState, setFormState] = useState("signup");
     const handleFade = () => {
@@ -35,10 +36,43 @@ export default function Home() {
         if (formState == "signin"){
             console.log("We're Logging in");
             signInWithEmailAndPassword(auth,email,password)
-            .then((userCredentials) => {
+            .then(async (userCredentials) => {
                 console.log(userCredentials.user.uid);
-                
-                router.push("/dashboard");
+                // get the user object
+                const userDocRef = doc(db, "Users", userCredentials.user.uid);
+                const userSnap = await getDoc(userDocRef);
+                let userObj = {};
+                if (!userSnap.exists()) {
+                    console.log("ERROR: User object was never created!");
+                    // We can create it for them right now
+                    userObj = {
+                        bin: "", // MAC Address of the bin their account corresponds to, for setup
+                        totalRecycled: 0, // Total number of items recycled, updated by recognize.py
+                        totalDisposed: 0, // Total number of items disposed, updated by recognize.py
+                        typeDistribution: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        friends: [], // Array of friend IDs for leaderboard
+                        weeklyGoal: 0, // Weekly recycling goal for user. CRON Job updates this at the end of the week.
+                        pastData: [
+                            // This is where shit gets real
+                            // Would be cool to keep track of past recycling data.
+                            // Organized by week maybe
+                            // Using ISO timestamp to separate out into weeks
+                        ],
+                        setupComplete: false,
+                        displayName,
+                    };
+
+                    await setDoc(userDocRef, userObj)
+                    // Can't think of anything else but basically this should be it
+                }
+                userObj = userObj ?? userSnap.data();
+                // If the user's account has been setup, route to dashboard.
+                // Otherwise FORCE them to setup 😈😈😈😈
+                if (userObj?.setupComplete == true) {
+                    router.push("/dashboard");
+                } else {
+                    router.push("/setup");
+                }
                 setErrorMessage("");
             }).catch((error) =>{
                 switch(error.code){
