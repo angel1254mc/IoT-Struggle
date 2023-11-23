@@ -23,6 +23,7 @@ const AddFriendsInput = ({innerRef, register, control}) => {
       users.push({
         label: data.displayName ?? "Null",
         value: doc.id,
+        photoURL: data.photoURL,
       });
     })
     setOptions(users);

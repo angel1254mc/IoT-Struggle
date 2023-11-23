@@ -14,6 +14,7 @@ import { auth, db } from "../../firebaseAdmin.js";
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { FirebaseProvider } from "@/context/FirebaseContext";
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -182,11 +183,12 @@ export default function RootLayout({ children }) {
                 />
                 <ColorSchemeScript/>
             </head>
-            <MantineProvider forceColorScheme="light">
             <body className={inter.className} id="sideMenu">
+            <MantineProvider forceColorScheme="light">
                 <main className="flex bg-gradient h-full min-h-[100vh] relative max-h-screen overflow-hidden flex-col items-start">
+                <Toaster/>
                 <MenuBarContext.Provider value={{toggleMenu}}>
-                    <FirebaseProvider>
+                <FirebaseProvider>
                   <div className="z-10 w-full flex flex-col items-center min-h-[100vh] max-h-[100vh] overflow-auto text-sm lg:flex">
                     {children}
                   </div>
@@ -207,8 +209,8 @@ export default function RootLayout({ children }) {
                   </FirebaseProvider>
                 </MenuBarContext.Provider>
                 </main>
+                </MantineProvider>
             </body>
-            </MantineProvider>
         </html>
     );
 }

@@ -2,7 +2,7 @@
 import { faBurger, faNavicon } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword} from "firebase/auth"
 import {useRouter} from 'next/navigation'; 
@@ -15,6 +15,7 @@ import { db, auth } from "../../firebaseAdmin";
 export default function Home() {
     const { register, handleSubmit, formState: {errors} } = useForm();
     const [fade, setFade] = useState(false);
+    const [isPending,  startTransition] = useTransition();
     const [formState, setFormState] = useState("signup");
     const handleFade = () => {
         setFade((state) => !state);
@@ -41,7 +42,7 @@ export default function Home() {
                 // get the user object
                 const userDocRef = doc(db, "Users", userCredentials.user.uid);
                 const userSnap = await getDoc(userDocRef);
-                let userObj = {};
+                let userObj = null;
                 if (!userSnap.exists()) {
                     console.log("ERROR: User object was never created!");
                     // We can create it for them right now
@@ -69,10 +70,10 @@ export default function Home() {
                 userObj = userObj ?? userSnap.data();
                 // If the user's account has been setup, route to dashboard.
                 // Otherwise FORCE them to setup 😈😈😈😈
-                if (userObj?.setupComplete == true) {
-                    router.push("/dashboard");
+                if (userObj?.setupComplete) {
+                    startTransition(() => router.push("/dashboard"));
                 } else {
-                    router.push("/setup");
+                    startTransition(() => router.push("/setup"));
                 }
                 setErrorMessage("");
             }).catch((error) =>{
@@ -100,10 +101,32 @@ export default function Home() {
             console.log("Signing up now");
 
             createUserWithEmailAndPassword(auth,email,password)
-            .then((userCredentials) => {
+            .then(async (userCredentials) => {
                 console.log(userCredentials.user.uid);
+                const userDocRef = doc(db, "Users", userCredentials.user.uid);
 
-                router.push("/registermac");
+                let userObj = {
+                    bin: "", // MAC Address of the bin their account corresponds to, for setup
+                    totalRecycled: 0, // Total number of items recycled, updated by recognize.py
+                    totalDisposed: 0, // Total number of items disposed, updated by recognize.py
+                    typeDistribution: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    friends: [], // Array of friend IDs for leaderboard
+                    weeklyGoal: 0, // Weekly recycling goal for user. CRON Job updates this at the end of the week.
+                    pastData: [
+                        // This is where shit gets real
+                        // Would be cool to keep track of past recycling data.
+                        // Organized by week maybe
+                        // Using ISO timestamp to separate out into weeks
+                    ],
+                    setupComplete: false,
+                    displayName: "",
+                    photoURL: "",
+                };
+
+                await setDoc(userDocRef, userObj)
+
+                // Once we've set up an initial user object, push them to setup
+                startTransition(() => router.push("/setup"));
                 setErrorMessage("");
             }).catch((error) =>{
                 switch(error.code){

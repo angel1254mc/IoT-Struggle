@@ -14,6 +14,14 @@ const page = () => {
 
   return (
     <div className="max-w-5xl w-full min-h-[100vh] flex flex-col gap-y-1 ">
+        <div className="flex w-full px-4 py-4 justify-end">
+            <button onClick={toggleMenu}>
+            <FontAwesomeIcon
+                    className="h-8 w-8 text-lightgreen"
+                    icon={faNavicon}
+                />
+            </button>
+        </div>
         <div className="w-full px-4 h-auto text-3xl font-semibold text-black">
             <h1>Overview</h1>
         </div>
@@ -43,6 +51,44 @@ const page = () => {
                 <h3 className="text-xs font-semibold pb-1 border-b-[1px] border-gray-300">Ratio</h3>
                 <p className="text-2xl font-bold text-lightgreen">0.5062</p>
             </div>
+        </div>
+        <div className="mt-4 mb-2">
+            <p className="text-gray-600 text-xs px-4 font-semibold">FRIEND LEADERBOARD</p>
+        </div>
+        <div className="flex-flex-col">
+        <div className="w-full flex text-xs text-gray-600 px-3">
+            <p className="text-left w-1/4 pl-14">Place</p>
+            <p className="w-1/3 pl-4">User</p>
+            <p className="w-1/3">Total Recycled</p>
+        </div>
+        <div className="flex mb-4 flex-col mt-1 py-2 px-2 mx-2 border-gray-300 border-[1px] rounded-md shadow-md bg-white">
+            <div className="w-full py-1 text-lg flex text-gray-600">
+                <p className="text-left pl-14 w-1/4">1st</p>
+                <p className="text-left pl-4 w-1/3 flex items-center gap-x-3"><Image className="h-6 w-6 rounded-full" src="/picture.jpg" height={100} width={100}/>Angel</p>
+                <p className="text-left pl-2 w-1/4">233</p>
+            </div>
+            <div className="w-full py-1 text-lg flex text-gray-600">
+                <p className="text-left pl-14 w-1/4">2nd</p>
+                <p className="text-left pl-4 w-1/3 flex items-center gap-x-3"><Image className="h-6 w-6 rounded-full" src="/picture.jpg" height={100} width={100}/>Angel</p>
+                <p className="text-left pl-2 w-1/4">233</p>
+            </div>
+            <div className="w-full py-1 text-lg flex text-gray-600">
+                <p className="text-left pl-14 w-1/4">3rd</p>
+                <p className="text-left pl-4 w-1/3 flex items-center gap-x-3"><Image className="h-6 w-6 rounded-full" src="/picture.jpg" height={100} width={100}/>Angel</p>
+                <p className="text-left pl-2 w-1/4">233</p>
+            </div>
+            <div className="w-full py-1 text-lg flex text-gray-600">
+                <p className="text-left pl-14 w-1/4">4th</p>
+                <p className="text-left pl-4 w-1/3 flex items-center gap-x-3"><Image className="h-6 w-6 rounded-full" src="/picture.jpg" height={100} width={100}/>Angel</p>
+                <p className="text-left pl-2 w-1/4">233</p>
+            </div>
+        </div>
+        <div className="flex mb-4 flex-col justify-center items-center mt-1 py-2 px-2 mx-2 border-gray-300 border-[1px] rounded-md shadow-md bg-white">
+            <h1 className="text-xl"></h1>
+            <Image src="" className="w-96 h-96">
+
+            </Image>
+        </div>
         </div>
     </div>
   )

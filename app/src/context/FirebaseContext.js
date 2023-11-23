@@ -16,43 +16,52 @@ export function FirebaseProvider({children}) {
     const pathname = usePathname();
     // Whenever user is
     useEffect(() => {
-        setInit(true);
+        setLoading(true);
         return auth.onIdTokenChanged(async (user) => {
-            setLoading(true);
-            if (pathname == "/") {
-                setLoading(false);
-            }
             if (!user) {
                 setUser(null);
                 setUserObj(null);
-                startTransition(() => router.push("/"))
+                if (pathname != "/")
+                    return startTransition(() => router.push("/"))
+                if (pathname == "/") 
+                    return setLoading(false);
             } else {
                 setUser(user);
                 const userDocRef = doc(db, "Users", user.uid);
                 const userSnap = await getDoc(userDocRef);
                 let data = userSnap.data();
-                if (userSnap.exists())
-                    setUserObj(userSnap.data());
-                if (data && !data?.setupComplete && pathname != "/") {
-                    console.log(data);
-                    startTransition(() => router.push("/setup"))
+                console.log(data);
+                console.log(pathname);
+
+                if (pathname == "/") {
+                    return setLoading(false);
+                } else if (pathname.includes("/setup")) {
+                    if (data?.setupComplete) 
+                        return startTransition(() => router.push("/dashboard"))
+                    else {
+                    }
+                } else if (pathname.includes("dashboard")) {
+                    if (!(data?.setupComplete)) {
+                        return startTransition(() => router.push("/setup"))
+                    } else {
+                    }
                 }
+                setLoading(false);
             }
         })
-    }, [])
-
-    useEffect(() => {
-        // Welcome to useEffect hell
-        if (init && !isPending) {
-            setLoading(false);
-        }
     }, [isPending])
 
 
+    const refreshUserObject = async () => {
+        const userDocRef = doc(db, "Users", auth.currentUser.uid);
+        const userSnap = await getDoc(userDocRef);
+        if (userSnap.exists())
+            setUserObj(userSnap.data());
+    }
 
     // Route the user away if they are not set up, 
     return (
-        <FirebaseContext.Provider value={(user, db, auth)}>
+        <FirebaseContext.Provider value={{user, db, auth, refreshUserObject}}>
             {!loading ? children : <h3 className="text-black">Loading</h3>}
         </FirebaseContext.Provider>
     )

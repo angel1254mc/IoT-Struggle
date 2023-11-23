@@ -1,21 +1,97 @@
 "use client";
 import Image from "next/image";
-import React, { useRef, useState } from "react";
+import React, { useContext, useRef, useState } from "react";
 import MacAddressInput from "./MacAddressInput";
 import PersonalInfoInput from "./PersonalInfoInput";
 import AddFriendsInput from "./AddFriendsInput";
 import { useForm } from "react-hook-form";
+import { auth, db, storage } from "../../../firebaseAdmin";
+import { doc, getDoc, setDoc } from "@firebase/firestore";
+import { toast } from "sonner";
+import { getDownloadURL, ref, uploadBytes } from "@firebase/storage";
+import { FirebaseContext } from "@/context/FirebaseContext";
+import { useRouter } from "next/navigation";
 
 const page = () => {
     // Gonna treat this like array indices
     const [navigation, setNavigation] = useState(0);
-    const [photoURL, setPhotoURL] = useState("/picture.jpg")
+    const [photoURL, setPhotoURL] = useState("/picture.jpg");
+    const router = useRouter();
+    const { refreshUserObject } = useContext(FirebaseContext);
     const macAddressRef = useRef(null);
     const personalInfoRef = useRef(null);
     const addFriendsRef = useRef(null);
 
-    const onSubmit = async (value) => {
-        console.log(value);
+    const onSubmit = async (data) => {
+        console.log(data);
+        // Given all the values, we can go ahead
+        // and submit this to firebase using the client-sdk
+        const userSnap = await getDoc(doc(db, "Users", auth.currentUser.uid));
+        
+        // Then, use the obtained fields to update the object
+        // There's better ways to do this but ima do it this way
+        if (!userSnap.exists()) {
+            return toast.error("Something went wrong: User with ID does not exist????");
+        }
+
+        const userObj = userSnap.data();
+        userObj.friends = data.friends;
+        userObj.weeklyGoal = data.weeklyGoal;
+        userObj.bin = data.bin;
+        userObj.displayName = data.displayName;
+
+        // Hard part is uploading the profile picture if there is one
+        if (data.picture) {
+            const imageRef = ref(storage, `profile-pictures/${auth.currentUser.uid}`);
+            // Praying this is actually a picture
+            try {
+                let snap = await uploadBytes(imageRef, data.picture)
+                let url = await getDownloadURL(snap.ref);
+                userObj.photoURL = url;
+            } catch(err) {
+                console.log(err);
+                toast.error("There was an error uplaoding profile picture!")
+            }
+        } else {
+            // Presumably already uploaded
+            const imageRef = ref(storage, "profile-pictures/picture.jpg");
+            // Get the default profile picture and make that their picture!
+            let url = await getDownloadURL(imageRef)
+            userObj.photoURL = url;
+        }
+
+        // One field, recycleCategories, corresponds to the Bin the user has chosen
+        const binSnap = await getDoc(doc(db, "Mac-To-Users", data.bin));
+        
+        if (!binSnap.exists()) {
+            return toast.error("Something went wrong: Bin with ID provided does not exist!");
+        }
+
+        const binData = binSnap.data();
+        // If this has already been set
+        if (binData.recycleCategories && binData.recycleCategories.length > 0) {
+            // Do nothing
+        } else if (data?.recycleCategories?.length > 0) {
+            // Assume that if recycleCategories has not been set previously, this is the first time a user is doing this.
+            binData.recycleCategories = data.recycleCategories;
+        }
+
+        binData.Users.push(auth.currentUser.uid);
+        userObj.setupComplete = true;
+
+        // Finally, update both user and bin objects
+        try {
+            await setDoc(doc(db, "Users", auth.currentUser.uid), userObj);
+            await setDoc(doc(db, "Mac-To-Users", data.bin), binData);
+
+        } catch(err) {
+            console.log(err);
+            toast.error("There was an error Uploading setup changes. See console for details");
+        }
+        toast.success("Successfully Set Up Account!");
+        await refreshUserObject();
+        // Finally, route to dashboard
+        router.push("/dashboard?setup-complete=true")
     }
     
     const {
@@ -28,6 +104,8 @@ const page = () => {
     } = useForm({
         mode: "onChange"
     });
+
+    console.log(errors);
 
     const nextPage = () => {
         let currIndex = navigation;
