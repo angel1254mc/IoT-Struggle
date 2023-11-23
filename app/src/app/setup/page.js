@@ -21,6 +21,17 @@ const page = () => {
     const macAddressRef = useRef(null);
     const personalInfoRef = useRef(null);
     const addFriendsRef = useRef(null);
+    
+    const {
+        control,
+        formState: {errors},
+        register,
+        getValues,
+        trigger,
+        handleSubmit
+    } = useForm({
+        mode: "onChange"
+    });
 
     const onSubmit = async (data) => {
         console.log(data);
@@ -93,17 +104,6 @@ const page = () => {
         // Finally, route to dashboard
         router.push("/dashboard?setup-complete=true")
     }
-    
-    const {
-        control,
-        formState: {errors},
-        register,
-        getValues,
-        trigger,
-        handleSubmit
-    } = useForm({
-        mode: "onChange"
-    });
 
     console.log(errors);
 
