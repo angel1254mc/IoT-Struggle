@@ -59,7 +59,8 @@ export default function Home() {
                             // Using ISO timestamp to separate out into weeks
                         ],
                         setupComplete: false,
-                        displayName,
+                        displayName: "",
+                        photoURL: "",
                     };
 
                     await setDoc(userDocRef, userObj)

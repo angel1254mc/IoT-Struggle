@@ -2,10 +2,34 @@ import { faCamera, faIcons } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { MultiSelect } from '@mantine/core'
 import Image from 'next/image'
-import React from 'react'
+import React, { useState } from 'react'
 import { Controller } from 'react-hook-form'
 
-const PersonalInfoInput = ({innerRef, register, control}) => {
+const PictureInput = ({control, setPhotoURL}) => (
+    <>
+    <label for="picture" className="w-full flex justify-center items-center gap-x-4 px-2 py-2 border-gray-400 border-2 rounded-sm">Upload Image <FontAwesomeIcon icon={faCamera}/></label>
+    <Controller
+        control={control}
+        name={"picture"}
+        render={({field: { value, onChange, ...others}}) => (
+            <input
+                className="transparent absolute -z-10"
+                {...others}
+                value={value?.fileName}
+                onChange={(event) => {
+                    console.log(event.target.files[0]);
+                    onChange(event.target.files[0])
+                    setPhotoURL(URL.createObjectURL(event.target.files[0]));
+                }}
+                type="file"
+                id="picture"
+                />
+        )}
+    />
+    </>
+)
+
+const PersonalInfoInput = ({innerRef, register, control, photoURL, setPhotoURL}) => {
   return (
     <div ref={innerRef} className="fade-in ax-w-5xl w-full h-full mb-4 justify-center flex flex-col gap-y-1 ">
     <div className="flex text-gray-700 flex-col mt-4 p-4 px-5 pb-8  mx-4 border-gray-300 border-[1px] rounded-md shadow-lg bg-white">
@@ -27,25 +51,25 @@ const PersonalInfoInput = ({innerRef, register, control}) => {
                 required: "Weekly Recycling Goal is required!",
             })}
             className="px-2 py-2 mt-2 text-base border-[1px] border-gray-300"
-            type="text"
+            type="number"
             id="weeklyGoal"
-            value={""}
             placeholder="e.g. 10 items"
         />
         <label className="font-bold text-sm mt-5" for="profile-picture">Profile Picture</label>
         <div className="flex gap-x-4">
-            <Image className="rounded-md w-1/3 h-auto" src="/picture.jpg" height={100} width={100}/>
+            <div className="min-w-[8rem] object-cover h-32 relative"><Image className="rounded-md object-cover h-auto" src={photoURL} fill={true}/></div>
             <div className="flex flex-col items-center w-full gap-y-2">
-                <button className="w-full flex justify-center items-center gap-x-4 px-2 py-2 border-gray-400 border-2 rounded-sm">Upload Image <FontAwesomeIcon icon={faCamera}/></button>
+                <PictureInput control={control} setPhotoURL={setPhotoURL}/>
                 <p className="text-xs text-gray-400">or</p>
                 <button className="w-full flex justify-center items-center gap-x-4 px-2 py-2 border-gray-400 border-2 rounded-sm">Random Icon <FontAwesomeIcon icon={faIcons} /></button>
             </div>
         </div>
-        <label className="font-bold text-sm mt-4"  for="weeklyGoal">Materials to Recycle</label>
+        <label className="font-bold text-sm mt-4" for="weeklyGoal">Materials to Recycle</label>
         <p className="text-xs">You can change your selection in the settings tab later.</p>
         <Controller
              name="recycleCategories"
              control={control}
+             defaultValue={[]}
              render={({ field: { onChange, onBlur, value, name, ref } }) => (
               <MultiSelect
                 size="md"

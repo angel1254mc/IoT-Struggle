@@ -9,15 +9,25 @@ import { useForm } from "react-hook-form";
 const page = () => {
     // Gonna treat this like array indices
     const [navigation, setNavigation] = useState(0);
+    const [photoURL, setPhotoURL] = useState("/picture.jpg")
     const macAddressRef = useRef(null);
     const personalInfoRef = useRef(null);
     const addFriendsRef = useRef(null);
+
+    const onSubmit = async (value) => {
+        console.log(value);
+    }
     
     const {
         control,
         formState: {errors},
         register,
-    } = useForm();
+        getValues,
+        trigger,
+        handleSubmit
+    } = useForm({
+        mode: "onChange"
+    });
 
     const nextPage = () => {
         let currIndex = navigation;
@@ -62,10 +72,11 @@ const page = () => {
                     </div>
                 </div>
             </div>
+            <form className="w-full h-full flex flex-col" onSubmit={handleSubmit(onSubmit)}>
             {navigation == 0 ? (
-                <MacAddressInput register={register} innerRef={macAddressRef} />
+                <MacAddressInput getValues={getValues} register={register} innerRef={macAddressRef} />
             ) : navigation == 1 ? (
-                <PersonalInfoInput register={register} control={control} innerRef={personalInfoRef}/>
+                <PersonalInfoInput photoURL={photoURL} setPhotoURL={setPhotoURL} register={register} control={control} innerRef={personalInfoRef}/>
             ) : <AddFriendsInput register={register} control={control} innerRef={addFriendsRef}/>}
             <div
                 id="nav-container"
@@ -88,11 +99,14 @@ const page = () => {
                         className="flex text-base font-bold bg-white text-green-500 px-8 py-2 rounded-md border-2 border-green-500 ml-auto"
                     >
                         Next
-                    </button>
+                    </button >
                 ) : (
-                    <></>
+                    <button className="flex text-base font-bold bg-white text-green-500 px-8 py-2 rounded-md border-2 border-green-500 ml-auto">
+                        Submit
+                    </button>
                 )}
             </div>
+            </form>
         </>
     );
 };

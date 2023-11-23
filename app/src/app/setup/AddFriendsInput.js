@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { auth, db } from '../../../firebaseAdmin';
 import { collection, getDocs } from '@firebase/firestore';
 import { Controller } from 'react-hook-form';
-import FriendBox from '@/component/FriendBox';
+import FriendBox from '@/components/FriendBox';
 
 const AddFriendsInput = ({innerRef, register, control}) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -36,6 +36,7 @@ const AddFriendsInput = ({innerRef, register, control}) => {
             </h1>
             <Controller
              name="friends"
+             defaultValue={[]}
              control={control}
              render={({ field: { onChange, onBlur, value, name, ref } }) => (
               <FriendBox
@@ -44,7 +45,7 @@ const AddFriendsInput = ({innerRef, register, control}) => {
                 value={value}
                 name={name}
                 ref={ref}
-                data={options}
+                options={options}
                 limit={5}
                 searchable
                 nothingFoundMessage={options.length > 0 ? "No matching users found!" : "No users found!"}
@@ -52,9 +53,6 @@ const AddFriendsInput = ({innerRef, register, control}) => {
               />
             )}
             />
-            <div className="w-full min-h-[24rem] max-h-96">
-                
-            </div>
         </div>
     </div>
   )
