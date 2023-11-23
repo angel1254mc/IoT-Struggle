@@ -30,7 +30,7 @@ function FriendBox({
         }).slice(0, 5);
   
   return (
-    <Combobox ref={ref} multiple value={value} onChange={onChange}>
+    <Combobox ref={ref} by={"value"} multiple value={value} onChange={onChange}>
       <div className="relative">
       <Combobox.Input
         className="w-full px-2 mt-4 py-1 text-base border-[1px] border-gray-400"
