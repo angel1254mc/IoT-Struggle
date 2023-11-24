@@ -29,7 +29,7 @@ const PictureInput = ({control, setPhotoURL}) => (
     </>
 )
 
-const PersonalInfoInput = ({innerRef, register, control, photoURL, setPhotoURL}) => {
+const PersonalInfoInput = ({innerRef, register, control, photoURL, setPhotoURL, errors}) => {
   return (
     <div ref={innerRef} className="fade-in ax-w-5xl w-full h-full mb-4 justify-center flex flex-col gap-y-1 ">
     <div className="flex text-gray-700 flex-col mt-4 p-4 px-5 pb-8  mx-4 border-gray-300 border-[1px] rounded-md shadow-lg bg-white">
@@ -45,7 +45,8 @@ const PersonalInfoInput = ({innerRef, register, control, photoURL, setPhotoURL})
             type="text"
             placeholder="e.g. Sponge Bob"
         />
-        <label className="font-bold text-sm mt-2"  for="weeklyGoal">Weekly Recycling Goal</label>
+        <p className="text-xs mt-2 text-red-500 flex flex-wrap text-wrap w-full">{errors?.displayName?.message ?? ""}</p>
+        <label className="font-bold text-sm mt-2"  for="weeklyGoal">Weekly Recycling Goal (# of Items)</label>
         <input
             {...register("weeklyGoal", {
                 required: "Weekly Recycling Goal is required!",

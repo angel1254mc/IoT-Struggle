@@ -11,27 +11,77 @@ import { toast } from "sonner";
 import { getDownloadURL, ref, uploadBytes } from "@firebase/storage";
 import { FirebaseContext } from "@/context/FirebaseContext";
 import { useRouter } from "next/navigation";
+import { yupResolver } from "@hookform/resolvers/yup"
+import * as yup from "yup"
+import { debounce } from "lodash";
 
 const page = () => {
     // Gonna treat this like array indices
     const [navigation, setNavigation] = useState(0);
     const [photoURL, setPhotoURL] = useState("/picture.jpg");
+    const [validatingBin, setValidatingBin] = useState("idle");
     const router = useRouter();
     const { refreshUserObject } = useContext(FirebaseContext);
     const macAddressRef = useRef(null);
     const personalInfoRef = useRef(null);
     const addFriendsRef = useRef(null);
+
+    const validateBin = async (value) => {
+        if (value.length < 1)
+            return false;
+        let binSnap = await getDoc(doc(db, "Mac-To-Users", value));
+        console.log("Bin provided: " + binSnap.exists());
+        if (binSnap.exists()) {
+            setValidatingBin("valid");
+            return true;
+        } else {
+            setValidatingBin("invalid");
+            return false;
+        }
+    };
     
+    // Lord forgive me for what Im about to do
+    const schema = yup.object().shape({
+        displayName: yup.string().required("Display Name is required!").min(1).max(30, "Display Name should not exceed 30 characters!"),
+        bin: yup.string().required("Bin ID is required!").min(1, "Bin ID must have length greater than 0").test("checkBinExists", "Bin does not exist! Did you input your MAC Address correctly?", async value => (
+            await new Promise((resolve) => {
+                debounce(
+                    async (value) => {
+                        setValidatingBin("validating");
+                        let val = await validateBin(
+                            value
+                        );
+                        resolve(val);
+                    },
+                    1000,
+                    { leading: true }
+                )(value);
+            })
+        )),
+        weeklyGoal: yup.number().min(0),
+        recycleCategories: yup.array().of(
+            yup.string().oneOf(["plastic", "glass", "cardboard", "clothes", "shoes"])
+        )
+    });
     const {
         control,
         formState: {errors},
         register,
+        getFieldState,
         getValues,
+        setFocus,
         trigger,
         handleSubmit
     } = useForm({
-        mode: "onChange"
+        mode: "onChange",
+        resolver: yupResolver(schema),
+        defaultValues: {
+            weeklyGoal: 5,
+        }
     });
+
+    const binFieldState = getFieldState("bin");
+    const displayNameFieldState = getFieldState("displayName");
 
     const onSubmit = async (data) => {
         console.log(data);
@@ -105,14 +155,37 @@ const page = () => {
         router.push("/dashboard?setup-complete=true")
     }
 
-    console.log(errors);
-
+    const onError = (errors) => {
+        console.log(errors);
+    }
     const nextPage = () => {
+        if (Object.keys(errors).length > 0 || !binFieldState.isDirty) {
+            if (!binFieldState.isDirty) {
+                toast.info("Please input Bin ID before continuing!")
+                return setFocus("bin");
+            }
+            // Don't let user move forward if there are errors
+            toast.info("Please fix errors before moving forward!");
+            if (errors?.bin) {
+                return setFocus("bin");
+            } else if (errors?.displayName) {
+                return setFocus("displayName");
+            } else if (errors?.weeklyGoal) {
+                return setFocus("weeklyGoal");
+            } else if (errors.recycleCategories) {
+                return setFocus("recycleCategories");
+            }
+            return;
+        }
         let currIndex = navigation;
         if (currIndex == 0) {
             macAddressRef.current.classList.remove("fade-in");
             macAddressRef.current.classList.add("fade-out");
         } else if (currIndex == 1) {
+            if (!displayNameFieldState.isDirty) {
+                toast.info("Please input display name before continuing!")
+                return setFocus("displayName");
+            }
             personalInfoRef.current.classList.remove("fade-in");
             personalInfoRef.current.classList.add("fade-out");
         }
@@ -122,6 +195,29 @@ const page = () => {
     };
 
     const previousPage = () => {
+        if (Object.keys(errors).length > 0 || !binFieldState.isDirty) {
+
+            if (!binFieldState.isDirty) {
+                toast.info("Please input Bin ID before continuing!")
+                return setFocus("bin");
+            }
+            // Don't let user move forward if there are errors
+            toast.info("Please fix errors before moving forward!");
+            if (errors?.bin) {
+                setNavigation(0);
+                return setFocus("bin");
+            } else if (errors?.displayName) {
+                setNavigation(1);
+                return setFocus("displayName");
+            } else if (errors?.weeklyGoal) {
+                setNavigation(1);
+                return setFocus("weeklyGoal");
+            } else if (errors.recycleCategories) {
+                setNavigation(1);
+                return setFocus("recycleCategories");
+            }
+            return;
+        }
         let currIndex = navigation;
         if (currIndex == 1) {
             personalInfoRef.current.classList.remove("fade-in");
@@ -150,12 +246,12 @@ const page = () => {
                     </div>
                 </div>
             </div>
-            <form className="w-full h-full flex flex-col" onSubmit={handleSubmit(onSubmit)}>
+            <form className="w-full h-full flex flex-col" onSubmit={handleSubmit(onSubmit, onError)}>
             {navigation == 0 ? (
-                <MacAddressInput getValues={getValues} register={register} innerRef={macAddressRef} />
+                <MacAddressInput errors={errors} validate={validatingBin} getValues={getValues} register={register} innerRef={macAddressRef} />
             ) : navigation == 1 ? (
-                <PersonalInfoInput photoURL={photoURL} setPhotoURL={setPhotoURL} register={register} control={control} innerRef={personalInfoRef}/>
-            ) : <AddFriendsInput register={register} control={control} innerRef={addFriendsRef}/>}
+                <PersonalInfoInput errors={errors} photoURL={photoURL} setPhotoURL={setPhotoURL} register={register} control={control} innerRef={personalInfoRef}/>
+            ) : <AddFriendsInput errors={errors} register={register} control={control} innerRef={addFriendsRef}/>}
             <div
                 id="nav-container"
                 className="w-full my-4 mb-8 px-4 flex justify-between mt-auto"

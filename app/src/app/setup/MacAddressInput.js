@@ -7,30 +7,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Loader } from "@mantine/core";
 import { faCheck, faClose } from "@fortawesome/free-solid-svg-icons";
 
-const MacAddressInput = ({ innerRef, register, trigger }) => {
-    const [validate, setValidate] = useState("idle");
-
-    const validateBin = async (value) => {
-        if (value.length < 1) {
-            return "Bin ID length must be greater than 0";
-        }
-        let binSnap = await getDoc(doc(db, "Mac-To-Users", value));
-        console.log("Bin provided: " + binSnap.exists());
-        if (binSnap.exists()) {
-            setValidate("valid");
-            return true;
-        } else {
-            setValidate("invalid");
-            return "Bin ID does not exist. Is your bin connected to WiFi?";
-        }
-    };
+const MacAddressInput = ({ innerRef, register, trigger, validate, setValidate, errors }) => {
 
     return (
         <div
             ref={innerRef}
             className="fade-in max-w-5xl w-full h-full justify-center flex flex-col gap-y-1 mb-4"
         >
-            <div className="flex items-center text-gray-700 flex-col gap-y-2 mt-4 p-4 px-5 pb-8  mx-4 border-gray-300 border-[1px] rounded-md shadow-lg bg-white">
+            <div className="flex items-center text-gray-700 flex-col gap-y-2 mt-4 p-4 px-5 pb-6  mx-4 border-gray-300 border-[1px] rounded-md shadow-lg bg-white">
                 <h1 className="text-4xl  text-center font-bold text-lightgreen">
                     Woohoo!
                 </h1>
@@ -57,22 +41,7 @@ const MacAddressInput = ({ innerRef, register, trigger }) => {
                     </p>
                     <div className="flex w-full">
                         <input
-                            {...register("bin", {
-                                validate: async (value) =>
-                                    new Promise((resolve) => {
-                                        debounce(
-                                            async (value) => {
-                                                setValidate("validating");
-                                                let val = await validateBin(
-                                                    value
-                                                );
-                                                resolve(val);
-                                            },
-                                            1000,
-                                            { leading: true }
-                                        )(value);
-                                    }),
-                            })}
+                            {...register("bin")}
                             className="px-2 mt-2 w-4/5 py-1 text-base border-[1px] border-gray-300"
                             type="text"
                             placeholder="e.g. A0:B7:65:FE:DB:5C"
@@ -98,6 +67,7 @@ const MacAddressInput = ({ innerRef, register, trigger }) => {
                             )}
                         </p>
                     </div>
+                    <p className="text-xs mt-2 text-red-500 flex flex-wrap text-wrap w-full">{errors?.bin?.message ?? ""}</p>
                 </div>
             </div>
         </div>
