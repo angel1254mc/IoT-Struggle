@@ -62,7 +62,7 @@ const PersonalInfoInput = ({innerRef, register, control, photoURL, setPhotoURL, 
             <div className="flex flex-col items-center w-full gap-y-2">
                 <PictureInput control={control} setPhotoURL={setPhotoURL}/>
                 <p className="text-xs text-gray-400">or</p>
-                <button className="w-full flex justify-center items-center gap-x-4 px-2 py-2 border-gray-400 border-2 rounded-sm">Random Icon <FontAwesomeIcon icon={faIcons} /></button>
+                <button disabled className="w-full flex justify-center items-center gap-x-4 px-2 py-2 border-gray-400 bg-gray-300 border-2 rounded-sm">Random Icon <FontAwesomeIcon icon={faIcons} /></button>
             </div>
         </div>
         <label className="font-bold text-sm mt-4" for="weeklyGoal">Materials to Recycle</label>
