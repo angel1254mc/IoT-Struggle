@@ -13,7 +13,7 @@ const page = () => {
     
 
   return (
-    <div className="max-w-5xl w-full min-h-[100vh]  flex flex-col gap-y-1 ">
+    <div className="max-w-5xl w-full min-h-[100vh] flex flex-col gap-y-1 ">
         <div className="flex w-full px-4 py-4 justify-end">
             <button onClick={toggleMenu}>
             <FontAwesomeIcon
@@ -86,7 +86,7 @@ const page = () => {
         <div className="flex mb-4 flex-col justify-center items-center mt-1 py-2 px-2 mx-2 border-gray-300 border-[1px] rounded-md shadow-md bg-white">
             <h1 className="text-xl"></h1>
             <Image src="" className="w-96 h-96">
-                
+
             </Image>
         </div>
         </div>
