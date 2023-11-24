@@ -181,7 +181,7 @@ export default function RootLayout({ children }) {
                     href="/images/apple_splash_640.png"
                     sizes="640x1136"
                 />
-                <ColorSchemeScript/>
+                <ColorSchemeScript forceColorScheme="light"/>
             </head>
             <body className={inter.className} id="sideMenu">
             <MantineProvider forceColorScheme="light">
