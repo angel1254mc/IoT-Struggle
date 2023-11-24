@@ -15,7 +15,7 @@ import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
 import { debounce } from "lodash";
 
-const page = () => {
+const SetupPage = () => {
     // Gonna treat this like array indices
     const [navigation, setNavigation] = useState(0);
     const [photoURL, setPhotoURL] = useState("/picture.jpg");
@@ -285,4 +285,4 @@ const page = () => {
     );
 };
 
-export default page;
+export default SetupPage;

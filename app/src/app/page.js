@@ -12,7 +12,7 @@ import { FirebaseContext } from "@/context/FirebaseContext.js";
 import { doc, getDoc, setDoc } from "@firebase/firestore";
 import { db, auth } from "../../firebaseAdmin";
 
-export default function Home() {
+const Home = () =>  {
     const { register, handleSubmit, formState: {errors} } = useForm();
     const [fade, setFade] = useState(false);
     const [isPending,  startTransition] = useTransition();
@@ -262,3 +262,5 @@ export default function Home() {
         </>
     );
 }
+
+export default Home

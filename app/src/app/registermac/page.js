@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import {useRouter} from 'next/navigation'; 
 import { useForm } from "react-hook-form";
 
-const page = () => {
+const Page = () => {
     const [macAddress, setMacAddress] = useState("");
     const router = useRouter();
     const {
@@ -27,7 +27,7 @@ const page = () => {
             <div className="w-full max-w-5xl text-black flex flex-col flex-grow items-center py-2 px-8">
 
                 <h1 className="text-2xl font-bold text-green-600">
-                    Register your Trashbin's MAC Address
+                    Register your Trashbin&apos;s MAC Address
                 </h1>
 
                 <form
@@ -58,4 +58,4 @@ const page = () => {
         </>
     );
 }
-export default page
+export default Page

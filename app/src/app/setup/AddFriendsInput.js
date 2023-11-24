@@ -33,7 +33,7 @@ const AddFriendsInput = ({innerRef, register, control}) => {
     <div ref={innerRef} className="fade-in ax-w-5xl w-full h-full mb-4 justify-center flex flex-col gap-y-1 ">
         <div className="flex text-gray-700 flex-col mt-4 p-4 px-5 pb-8  mx-4 border-gray-300 border-[1px] rounded-md shadow-lg bg-white">
             <h1 className="text-4xl pr-2 font-bold text-lightgreen">
-                Add some friends if you'd like!
+                Add some friends if you&apos;d like!
             </h1>
             <Controller
              name="friends"

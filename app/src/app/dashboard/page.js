@@ -5,7 +5,7 @@ import Image from 'next/image'
 import React, { useContext } from 'react'
 import { MenuBarContext } from '../layout'
 
-const page = () => {
+const DashboardPage = () => {
 
     const {toggleMenu} = useContext(MenuBarContext);
 
@@ -94,4 +94,4 @@ const page = () => {
   )
 }
 
-export default page
+export default DashboardPage

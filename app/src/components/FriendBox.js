@@ -55,8 +55,8 @@ function FriendBox({
       <div className="h-96 overflow-auto max-h-96 w-full mt-2 border-gray-300 rounded-md">
       {value.length > 0 && (
           value.map((user, index) => (
-            <div onClick={() => removeElement(user)} className={`${index == 0 ? "border-y-[1px]" : "border-b-[1px] "} w-full text-base cursor-pointer transition-all duration-75 hover:bg-gray-100 border-gray-300 py-2 px-2 items-center flex gap-x-4`}>
-              <div key={user.value} className="rounded-full overflow-hidden"><Image src={user.photoURL} height={40} width={40} className="w-8 h-8"/></div>
+            <div key={user.value} onClick={() => removeElement(user)} className={`${index == 0 ? "border-y-[1px]" : "border-b-[1px] "} w-full text-base cursor-pointer transition-all duration-75 hover:bg-gray-100 border-gray-300 py-2 px-2 items-center flex gap-x-4`}>
+              <div className="rounded-full overflow-hidden"><Image src={user.photoURL} height={40} width={40} className="w-8 h-8"/></div>
               {user.label}
             </div>
           ))
