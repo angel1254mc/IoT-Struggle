@@ -17,9 +17,9 @@ resize_and_rescale = tf.keras.Sequential([
 
 # Load your TensorFlow model
 model_path = "../model/garbageclassifier3.keras"
-print("Loading Model");
+print("Loading Model")
 model = tf.keras.models.load_model(model_path)
-print("Model Loaded!");
+print("Model Loaded!")
 
 # Define a function to make predictions on an image
 def predict_image(image_path):
@@ -40,7 +40,7 @@ def predict_image(image_path):
     prediction = model.predict(image)
     
     # Decode the prediction 
-    classes = ["battery", "biological", "cardboard", "clothes", "metal", "nonrecyclableglass", "paper", "plastic", "recyclableglass", "shoes", "trash"];
+    classes = ["battery", "biological", "cardboard", "clothes", "metal", "nonrecyclableglass", "paper", "plastic", "recyclableglass", "shoes", "trash"]
     predicted_class = classes[np.argmax(prediction)]
 
     return predicted_class
@@ -58,7 +58,7 @@ def recognize():
     predicted_class = predict_image(image_path)
     print("Model Prediction Finalized!")
     # Replace this list with your actual predictions
-    predictions = [predicted_class];
+    predictions = [predicted_class]
 
     # Create a JSON response
     response = {
