@@ -199,7 +199,7 @@ export default function RootLayout({ children }) {
                       {/* <button onClick={() => pushAndToggle("/")} className="flex nav-item text-3xl font-bold px-4 border-green-500 py-4 border-t-[2px]">
                           Home
                       </button> */}
-                      <button onClick={() => pushAndToggle("/dashboard")} className="flex nav-item text-3xl font-bold px-4 border-green-500 py-4 border-t-[2px]">
+                      <button onClick={() => pushAndToggle("/app/dashboard")} className="flex nav-item text-3xl font-bold px-4 border-green-500 py-4 border-t-[2px]">
                           Dashboard
                       </button>
                       <button onClick={handleSignOut} className="nav-item flex text-3xl font-bold px-4 border-green-500 py-4 border-y-[2px]">
