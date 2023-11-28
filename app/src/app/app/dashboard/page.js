@@ -28,11 +28,19 @@ const DashboardPage = () => {
             leaderboard.sort(function(a, b) {
                 return parseFloat(b.totalRecycled) - parseFloat(a.totalRecycled)
             });
+        if (leaderboard.length == 0) {
+            return (
+                <div key={user.displayName} className="w-full py-1 text-lg flex text-gray-600">
+                    <div className="w-full py-2 h-48">No users found!</div>
+                </div>
+            )
+        }
         
         return (
-            <>
+            <div className="w-full min-h-[14rem]">
             {leaderboard.map((user, index) => (
-                <div className="w-full py-1 text-lg flex text-gray-600">
+                index < 6 ? (
+                <div key={user.displayName} className="w-full border-b-gray-200 border-b-[1px] pb-2 py-1 text-lg flex text-gray-600">
                     <p className="text-left pl-14 w-1/4">{index + 1}</p>
                     <div className="text-left pl-4 w-1/3 flex items-center gap-x-3">
                         <div className="relative h-6 w-6">
@@ -41,9 +49,9 @@ const DashboardPage = () => {
                         <p className='truncate text-ellipsis'>Angel Lopez Pol</p>
                     </div>
                     <p className="text-left pl-2  ml-auto mr-4">{user.totalRecycled}</p>
-                </div>
+                </div>) : <></>
             ))}
-            </>
+            </div>
         )
     }, [friends, userData])
     
@@ -70,7 +78,7 @@ const DashboardPage = () => {
             </div>
             <div className="w-full transition-all duration-300 ease-in-out h-2 rounded-xl overflow-hidden">
                     <div style={{
-                        width: `${parseFloat(totalRecycled/weeklyGoal).toFixed()*100}%`
+                        width: `${parseFloat(totalRecycled/weeklyGoal).toFixed(2)*100}%`
                     }}className={`h-2 bg-lightgreen`}></div>
             </div>
         </div>
@@ -103,12 +111,14 @@ const DashboardPage = () => {
         <div className="flex mb-4 flex-col mt-1 py-2 px-2 mx-2 border-gray-300 border-[1px] rounded-md shadow-md bg-white">
             {loading ? <></> : generateLeaderboard()}
         </div>
-        <div className="flex mb-4 flex-col justify-center items-center mt-1 py-2 px-2 mx-2 border-gray-300 border-[1px] rounded-md shadow-md bg-white">
-            <h1 className="text-xl"></h1>
-            <Image src="" className="w-96 h-96">
+        {   /*
+            <div className="flex mb-4 flex-col justify-center items-center mt-1 py-2 px-2 mx-2 border-gray-300 border-[1px] rounded-md shadow-md bg-white">
+                <h1 className="text-xl"></h1>
+                <Image src="" className="w-96 h-96">
 
-            </Image>
-        </div>
+                </Image>
+            </div>
+                */}
         </div>
     </div>
   )
