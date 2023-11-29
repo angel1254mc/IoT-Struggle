@@ -1,12 +1,20 @@
 #include "esp_now.h"
 #include "WiFi.h"
+#include <SPI.h>
+#include <RH_NRF24.h>
 
 // LED Pins
 #define TRASH_SCAN_LED 15
 #define WASTE_LED 33
 #define RECYCLE_LED 32
 #define WASTE_FULL_LED 12
-#define RECYCLE_FULL_LED 14
+#define RECYCLE_FULL_LED 13
+
+// NRF pins
+#define CE 4
+#define CSN 5
+
+RH_NRF24 nrf24(CE,CSN);
 
 // Local variables
 bool trash_present = false;
@@ -15,11 +23,10 @@ bool recycle_sort_decision_full = false;
 int trash_scan_distance = 0;
 int waste_distance = 0;
 int recycle_distance = 0;
-int sort_decision = 2;
-bool takeNewPhoto = true; //sort the trash before taking a new photo
+uint8_t sort_decision = 2;
+//bool takeNewPhoto = true; //sort the trash before taking a new photo
 
 // Communication variables
-uint8_t ESP32_MOTOR_ADDRESS[] = {0xA0, 0xB7, 0x65, 0xFE, 0x6D, 0x4C};
 uint8_t ESP32_SENSORS_ADDRESS[] = {0xB0, 0xA7, 0x32, 0x8C, 0x66, 0x08};
 
 typedef struct struct_receive_from_sensors_message
@@ -35,7 +42,7 @@ typedef struct struct_send_to_motor_message
   bool trash_detected; 
 } struct_send_to_motor_message;
 
-typedef struct struct_receive_from_motor_message
+struct struct_receive_from_motor_message
 {
   int sort_decision; // For motor Waste (0) and Recycle (1)
 } struct_receive_from_motor_message;
@@ -43,7 +50,7 @@ typedef struct struct_receive_from_motor_message
 // Structured data objects
 struct_receive_from_sensors_message receivedSensorsData;
 struct_send_to_motor_message sentMotorData;
-struct_receive_from_motor_message receivedMotorData;
+//struct_receive_from_motor_message receivedMotorData;
 
 // Peer info
 esp_now_peer_info_t sensorsPeerInfo;
@@ -65,10 +72,10 @@ void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len)
       break;
     // Data received from Motor ESP32
     case 0x4C:
-      memcpy(&receivedMotorData, incomingData, sizeof(receivedMotorData));
-      sort_decision = receivedMotorData.sort_decision;
-      Serial.print("Sort Decision: ");
-      Serial.println(sort_decision);
+      //memcpy(&receivedMotorData, incomingData, sizeof(receivedMotorData));
+      //sort_decision = receivedMotorData.sort_decision;
+      //Serial.print("Sort Decision: ");
+      //Serial.println(sort_decision);
       break;
     case 0x08:
       memcpy(&receivedSensorsData, incomingData, sizeof(receivedSensorsData));
@@ -87,7 +94,7 @@ void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len)
       break;
     default:
       // Unknown MAC address
-      Serial.println("Received data from unknown MAC address");
+      //Serial.println("Received data from unknown MAC address");
       break;
   }
 }
@@ -113,11 +120,6 @@ void setup()
   memcpy(sensorsPeerInfo.peer_addr, ESP32_SENSORS_ADDRESS, 6);
   sensorsPeerInfo.channel = 0;
   sensorsPeerInfo.encrypt = false;
-
-  // Register motor peer
-  memcpy(motorPeerInfo.peer_addr, ESP32_MOTOR_ADDRESS, 6);
-  motorPeerInfo.channel = 0;
-  motorPeerInfo.encrypt = false;
 
   // Add peers
   if(esp_now_add_peer(&sensorsPeerInfo) != ESP_OK)
@@ -145,6 +147,14 @@ void setup()
   digitalWrite(RECYCLE_LED, LOW);
   digitalWrite(WASTE_FULL_LED, LOW);
   digitalWrite(RECYCLE_FULL_LED, LOW);
+
+  if (!nrf24.init())
+    Serial.println("init failed");
+  // Defaults after init are 2.402 GHz (channel 5), 2Mbps, 0dBm
+  if (!nrf24.setChannel(5))
+    Serial.println("setChannel failed");
+  if (!nrf24.setRF(RH_NRF24::DataRate2Mbps, RH_NRF24::TransmitPower0dBm))
+    Serial.println("setRF failed");
 }
 
 void loop() 
@@ -161,40 +171,61 @@ void loop()
   }
 
   // Check if trash is present 
-  if(trash_present && takeNewPhoto)
+  if(trash_present)
   {
-    // Send data to motor
-    sentMotorData.trash_detected = true;
-    esp_err_t motorResult = esp_now_send(ESP32_MOTOR_ADDRESS, (uint8_t *) &sentMotorData, sizeof(sentMotorData));
-
-    if(motorResult == ESP_OK)
-    {
-      Serial.println("Sending to motor confirmed");
-    }
-    else
-    {
-      Serial.println("Sending error");
-    }
   
     // Send data to camera/indicate for the user
     Serial.println("Sending indicator to Camera to take the photo");
     digitalWrite(TRASH_SCAN_LED, HIGH); // Turn on White LED
-    delay(5000); // Delay 5 seconds
+    delay(15000); // Delay 5 seconds
     digitalWrite(TRASH_SCAN_LED, LOW); // Turn off White LED
-    takeNewPhoto = false
+    //takeNewPhoto = false
+
+    // Send data to motor
+    //bool ready_to_sort = true;
+    uint8_t ready_to_sort = 1;
+    nrf24.send((uint8_t *) &ready_to_sort, sizeof(ready_to_sort));
+
+     // Now wait for a reply
+    nrf24.waitPacketSent();
+    uint8_t buf[RH_NRF24_MAX_MESSAGE_LEN];
+    uint8_t len = sizeof(buf);
+
+    if (nrf24.waitAvailableTimeout(10000))
+    { 
+      // Should be a reply message for us now   
+      if (nrf24.recv(buf, &len))
+      {
+        Serial.println("got reply!");
+        sort_decision = 2;
+        Serial.print("Before: ");
+        Serial.println(sort_decision);
+        memcpy(&sort_decision, buf, sizeof(sort_decision));
+        Serial.print("After: ");
+        Serial.println(sort_decision);
+      }
+      else
+      {
+        Serial.println("recv failed");
+      }
+    }
+    else
+    {
+      Serial.println("No reply, is nrf24_server running?");
+    }
 
     // Todo: let camera know its ready to take a picture
 
     // Todo: let ML model decide where to sort trash
 
-    If the trash is to be sorted in the waste bin, turn on the green LED
+    // If the trash is to be sorted in the waste bin, turn on the green LED
     if (sort_decision == 0) 
     {
       digitalWrite(WASTE_LED, HIGH);
       // Todo: wait for conveyor belt to move trash into sort_decision
       delay(5000); // delay 5 seconds
       digitalWrite(WASTE_LED, LOW);
-      takeNewPhoto = true;
+      //takeNewPhoto = true;
     }
 
     if(sort_decision == 1)
@@ -204,7 +235,7 @@ void loop()
       // Todo: wait for conveyor belt to move trash into sort_decision
       delay(5000); // delay 5 seconds
       digitalWrite(RECYCLE_LED, LOW);
-      takeNewPhoto = true;
+      //takeNewPhoto = true;
     }
   }
 
