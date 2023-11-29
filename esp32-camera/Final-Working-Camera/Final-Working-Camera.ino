@@ -303,7 +303,7 @@ void setup() {
   lcd.print("Start");     // The print content is displayed on the LCD
   lcd.setCursor(0,1); 
   lcd.print("Program!");
-  delay(1000);
+  delay(2000);
 }
 
 void loop() {
@@ -324,19 +324,43 @@ void loop() {
     capturePhotoSaveLittleFS();
     Serial.print("Uploading picture... ");
 
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Photo Taken!");
+    lcd.setCursor(0,1); 
+    lcd.print("Please Wait");
+
     while (takeNewPhoto){
       if (Firebase.ready()){
         takeNewPhoto = false;
         if (Firebase.Storage.upload(&fbdo, STORAGE_BUCKET_ID, FILE_PHOTO_PATH, mem_storage_type_flash, BUCKET_PHOTO, "image/jpeg",fcsUploadCallback)){
           Serial.printf("\nDownload URL: %s\n", fbdo.downloadURL().c_str());
+          lcd.clear();
+          lcd.setCursor(0,0);
+          lcd.print("Photo Uploaded");
+          lcd.setCursor(0,1); 
+          lcd.print("Successfully!");
+          delay(2000);
         }
         else{
           Serial.println(fbdo.errorReason());
+          lcd.clear();
+          lcd.setCursor(0,0);
+          lcd.print("Photo Upload");
+          lcd.setCursor(0,1); 
+          lcd.print("Failed");
+          delay(2000);
         }
       }
       else{
         Serial.println("Error with Firebase! Retrying Photo Upload!");
         Serial.println();
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("Photo Upload");
+        lcd.setCursor(0,1); 
+        lcd.print("Failed");
+        delay(2000);
       }
     }
     takeNewPhoto = true;
