@@ -9,10 +9,10 @@
 #include <WiFi.h>
 #include <Firebase_ESP_Client.h>
 #include <addons/TokenHelper.h> //token generation
+#include <LiquidCrystal_I2C.h>
+#include <Wire.h>
 
 #include "ImportantContents.h" //contains all the important bits
-
-#include <HardwareSerial.h>
 
 // -[ Wrover Pins ]
 #define PWDN_GPIO_NUM    -1
@@ -33,9 +33,24 @@
 #define PCLK_GPIO_NUM    22
 #define FORMAT_LITTLEFS_IF_FAILED true
 #define FILE_PHOTO_PATH "/photo.jpg"
-String BUCKET_PHOTO = "/photo.jpg";
+String BUCKET_PHOTO = "";
+String PhotoName = "/photo.jpg";
 
+// #define indicatorLED    32
 #define indicatorLED    2
+
+#define SDA 13                    //Define SDA pins
+#define SCL 14                    //Define SCL pins
+LiquidCrystal_I2C lcd(0x27,16,2);
+
+bool i2CAddrTest(uint8_t addr) {
+  Wire.begin();
+  Wire.beginTransmission(addr);
+  if (Wire.endTransmission() == 0) {
+    return true;
+  }
+  return false;
+}
 
 FirebaseData fbdo;
 FirebaseAuth auth;
@@ -43,6 +58,9 @@ FirebaseConfig configF;
 
 bool signUpOk = false;
 bool takeNewPhoto = true;
+String uid = "";
+String displayName = "";
+bool uidError = false;
 
 // ============= CAMERA CODE =============== // 
 
@@ -178,7 +196,64 @@ void initWiFi(){
 
 // ======================== NON-CAMERA CODE ============================= //
 
-//For recieving the data
+void grabUserInfo(){
+  //Serial.println("Start Grabbing User Info. . .");
+
+  if (Firebase.ready()){
+    //first get uid
+    String documentPath = "Mac-To-Users/" + WiFi.macAddress();
+    String fieldPath = "ActiveUserID";
+
+    FirebaseJson jsonPayload;
+    FirebaseJsonData jsonData;
+
+    //get the document associated with our mac address
+    if (Firebase.Firestore.getDocument(&fbdo, "iotstruggle", "", documentPath.c_str(), fieldPath.c_str())){
+      //Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
+      jsonPayload.setJsonData(fbdo.payload().c_str());
+
+      // Get the data from FirebaseJson object 
+      jsonPayload.get(jsonData, "fields/ActiveUserID/stringValue", true);
+      //Serial.println(jsonData.stringValue);
+      // User ID will determine bucket name
+      String newUid = jsonData.stringValue;
+      if (newUid != uid){
+        uid = newUid;
+        BUCKET_PHOTO = uid + PhotoName;
+
+        //then get displayName
+        documentPath = "Users/" + uid;
+        fieldPath = "displayName";
+        //get the document associated with our mac address
+        if (Firebase.Firestore.getDocument(&fbdo, "iotstruggle", "", documentPath.c_str(), fieldPath.c_str())){
+          //Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
+          jsonPayload.setJsonData(fbdo.payload().c_str());
+
+          // Get the data from FirebaseJson object 
+          jsonPayload.get(jsonData, "fields/displayName/stringValue", true);
+          //Serial.println(jsonData.stringValue);
+          // this will be what we display on the lcd
+          displayName = jsonData.stringValue;
+          uidError = false;
+        }
+        else{
+          Serial.println(fbdo.errorReason());
+          uidError = true;
+        }
+      }
+      else{
+        //same uid
+        uidError = false;
+      }
+    }
+    else{
+      Serial.println(fbdo.errorReason());
+      uidError = true;
+    }
+  }
+
+  //Serial.println(". . . End Grabbing User Info");
+}
 
 // ======================== SETUP AND LOOP ============================= //
 
@@ -212,47 +287,39 @@ void setup() {
   Firebase.begin(&configF, &auth);
   Firebase.reconnectWiFi(true);
 
-  bool restartAttempt = false;
-
-  //then, once all the connections are done...
-  if (Firebase.ready() && !restartAttempt){
-    String documentPath = "Mac-To-Users/" + WiFi.macAddress();
-    String fieldPath = "ActiveUserID";
-
-    FirebaseJson jsonPayload;
-    FirebaseJsonData jsonData;
-
-    //get the document associated with our mac address
-    if (Firebase.Firestore.getDocument(&fbdo, "iotstruggle", "", documentPath.c_str(), fieldPath.c_str())){
-      Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
-      jsonPayload.setJsonData(fbdo.payload().c_str());
-
-      // Get the data from FirebaseJson object 
-      jsonPayload.get(jsonData, "fields/ActiveUserID/stringValue", true);
-      Serial.println(jsonData.stringValue);
-      // User ID will determine bucket name
-      String uid = jsonData.stringValue;
-      BUCKET_PHOTO = uid + BUCKET_PHOTO;
-      restartAttempt = false;
-    }
-    else{
-      restartAttempt = true;
-    }
-  }
-  else{
-    Serial.println(fbdo.errorReason());
-    restartAttempt = true;
-  }
-  
-
   //indicator stuff
   pinMode(indicatorLED, INPUT);
+
+  //beginning LCD wire
+  Wire.begin(SDA, SCL);           // attach the IIC pin
+  if (!i2CAddrTest(0x27)) {
+    lcd = LiquidCrystal_I2C(0x3F, 16, 2);
+  }
+  lcd.init();                     // LCD driver initialization
+  lcd.backlight();                // Open the backlight
   
+  Serial.println("-=-=-=<< Ready for Main Functionality >>=-=-=-");
+  lcd.setCursor(0,0);             // Move the cursor to row 0, column 0
+  lcd.print("Start");     // The print content is displayed on the LCD
+  lcd.setCursor(0,1); 
+  lcd.print("Program!");
+  delay(1000);
 }
 
 void loop() {
 
-  if (digitalRead(indicatorLED) == HIGH){
+  grabUserInfo();
+  lcd.clear();
+  lcd.setCursor(0,0);             // Move the cursor to row 0, column 0
+  lcd.print("Current User:");     // The print content is displayed on the LCD
+  lcd.setCursor(0,1); 
+  lcd.print(displayName);
+
+  if (uidError){
+    Serial.println("There is an error");
+  }
+
+  if ((digitalRead(indicatorLED) == HIGH) && (!uidError)){
     Serial.println("Yes its being received!");
     capturePhotoSaveLittleFS();
     Serial.print("Uploading picture... ");
@@ -274,4 +341,5 @@ void loop() {
     }
     takeNewPhoto = true;
   }
+  delay(100);
 }
