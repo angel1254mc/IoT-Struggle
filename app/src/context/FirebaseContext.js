@@ -30,17 +30,15 @@ export function FirebaseProvider({children}) {
                 const userDocRef = doc(db, "Users", user.uid);
                 const userSnap = await getDoc(userDocRef);
                 let data = userSnap.data();
-                console.log(data);
-                console.log(pathname);
 
                 if (pathname == "/") {
                     return setLoading(false);
                 } else if (pathname.includes("/setup")) {
                     if (data?.setupComplete) 
-                        return startTransition(() => router.push("/dashboard"))
+                        return startTransition(() => router.push("/app/dashboard"))
                     else {
                     }
-                } else if (pathname.includes("dashboard")) {
+                } else if (pathname.includes("/app")) {
                     if (!(data?.setupComplete)) {
                         return startTransition(() => router.push("/setup"))
                     } else {

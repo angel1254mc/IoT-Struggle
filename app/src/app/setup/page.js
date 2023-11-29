@@ -152,7 +152,7 @@ const SetupPage = () => {
         toast.success("Successfully Set Up Account!");
         await refreshUserObject();
         // Finally, route to dashboard
-        router.push("/dashboard?setup-complete=true")
+        router.push("/app/dashboard?setup-complete=true")
     }
 
     const onError = (errors) => {

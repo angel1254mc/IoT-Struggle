@@ -71,7 +71,7 @@ const Home = () =>  {
                 // If the user's account has been setup, route to dashboard.
                 // Otherwise FORCE them to setup 😈😈😈😈
                 if (userObj?.setupComplete) {
-                    startTransition(() => router.push("/dashboard"));
+                    startTransition(() => router.push("/app/dashboard"));
                 } else {
                     startTransition(() => router.push("/setup"));
                 }
