@@ -66,8 +66,15 @@ const Home = () =>  {
 
                     await setDoc(userDocRef, userObj)
                     // Can't think of anything else but basically this should be it
+                } else {
+                    userObj = userObj ?? userSnap.data();
+                    if (userObj.setupComplete) {
+                        let ref = doc(db, "Mac-To-Users", userObj.bin);
+                        let bin = (await getDoc(ref)).data();
+                        bin.ActiveUserID = userSnap.id;
+                        await setDoc(ref, bin);
+                    }
                 }
-                userObj = userObj ?? userSnap.data();
                 // If the user's account has been setup, route to dashboard.
                 // Otherwise FORCE them to setup 😈😈😈😈
                 if (userObj?.setupComplete) {
