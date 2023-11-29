@@ -5,7 +5,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Image from 'next/image'
 import React, { useCallback, useContext } from 'react'
 import { AppContext } from '../layout'
-import Skeleton from './skeleton'
 
 const DashboardPage = () => {
 
