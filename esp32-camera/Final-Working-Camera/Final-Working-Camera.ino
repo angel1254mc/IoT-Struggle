@@ -234,17 +234,21 @@ void grabUserInfo(){
           //Serial.println(jsonData.stringValue);
           // this will be what we display on the lcd
           displayName = jsonData.stringValue;
+          uidError = false;
         }
         else{
           Serial.println(fbdo.errorReason());
+          uidError = true;
         }
       }
       else{
         //same uid
+        uidError = false;
       }
     }
     else{
       Serial.println(fbdo.errorReason());
+      uidError = true;
     }
   }
 
@@ -295,6 +299,11 @@ void setup() {
   lcd.backlight();                // Open the backlight
   
   Serial.println("-=-=-=<< Ready for Main Functionality >>=-=-=-");
+  lcd.setCursor(0,0);             // Move the cursor to row 0, column 0
+  lcd.print("Start");     // The print content is displayed on the LCD
+  lcd.setCursor(0,1); 
+  lcd.print("Program!");
+  delay(1000);
 }
 
 void loop() {
@@ -306,12 +315,10 @@ void loop() {
   lcd.setCursor(0,1); 
   lcd.print(displayName);
 
-  // int sensorValue = analogRead(indicatorLED);
-  // sensorValue = map(sensorValue, 0, 1023, 0, 255);
-  // sensorValue = constrain(sensorValue, 0, 255);
-  //Serial.println(sensorValue);
+  if (uidError){
+    Serial.println("There is an error");
+  }
 
-  //if (sensorValue == 255){
   if ((digitalRead(indicatorLED) == HIGH) && (!uidError)){
     Serial.println("Yes its being received!");
     capturePhotoSaveLittleFS();
